@@ -52,7 +52,7 @@ class PushNotificationService
                 'body'  => $body,
                 'data'  => $data,
             ]);
-            Log::info('ExpoPush response: ' . $response->body());
+            Log::error('ExpoPush response: ' . $response->body());
         } catch (\Throwable $e) {
             Log::warning('ExpoPush error: ' . $e->getMessage());
         }
