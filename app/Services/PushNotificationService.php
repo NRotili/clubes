@@ -43,7 +43,7 @@ class PushNotificationService
     private static function send(string $token, string $title, string $body, array $data = []): void
     {
         try {
-            Http::withHeaders([
+            $response = Http::withHeaders([
                 'Accept'       => 'application/json',
                 'Content-Type' => 'application/json',
             ])->post(self::ENDPOINT, [
@@ -52,6 +52,7 @@ class PushNotificationService
                 'body'  => $body,
                 'data'  => $data,
             ]);
+            Log::info('ExpoPush response: ' . $response->body());
         } catch (\Throwable $e) {
             Log::warning('ExpoPush error: ' . $e->getMessage());
         }
