@@ -18,7 +18,8 @@ FROM php:8.3-fpm-alpine AS app
 RUN apk add --no-cache \
     git curl zip unzip \
     libpng-dev libjpeg-turbo-dev freetype-dev \
-    libzip-dev oniguruma-dev icu-dev
+    libzip-dev oniguruma-dev icu-dev icu-libs \
+    sqlite-dev
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
