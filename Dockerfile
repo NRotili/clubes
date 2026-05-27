@@ -54,7 +54,11 @@ RUN mkdir -p \
         bootstrap/cache \
         /run/nginx \
         /run/supervisord \
- && chown -R www-data:www-data storage bootstrap/cache \
+        /var/lib/nginx/tmp/client_body \
+        /var/lib/nginx/tmp/proxy \
+        /var/lib/nginx/tmp/fastcgi \
+        /var/lib/nginx/logs \
+ && chown -R www-data:www-data storage bootstrap/cache /var/lib/nginx /run/nginx \
  && chmod -R 775 storage bootstrap/cache
 
 COPY docker/nginx.conf       /etc/nginx/nginx.conf
