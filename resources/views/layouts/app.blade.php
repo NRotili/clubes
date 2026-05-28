@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Inicio') — {{ config('app.name', 'Club') }}</title>
+    @if(\App\Models\ClubConfig::logoUrl())
+        <link rel="icon" type="image/png" href="{{ \App\Models\ClubConfig::logoUrl() }}">
+    @endif
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
