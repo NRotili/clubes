@@ -27,7 +27,7 @@ class PushNotificationService
             'to'    => $token,
             'title' => $title,
             'body'  => $body,
-            'data'  => $data,
+            'data'  => $data ?: new \stdClass(),
         ], $tokens);
 
         try {
@@ -50,9 +50,9 @@ class PushNotificationService
                 'to'    => $token,
                 'title' => $title,
                 'body'  => $body,
-                'data'  => $data,
+                'data'  => $data ?: new \stdClass(),
             ]);
-            Log::error('ExpoPush response: ' . $response->body());
+            Log::info('ExpoPush response: ' . $response->body());
         } catch (\Throwable $e) {
             Log::warning('ExpoPush error: ' . $e->getMessage());
         }

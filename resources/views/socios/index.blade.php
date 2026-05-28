@@ -87,29 +87,30 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200">
-                        <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">N° Socio</th>
+                        <th class="hidden sm:table-cell text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">N° Socio</th>
                         <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">Apellido y Nombre</th>
-                        <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">Documento</th>
-                        <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">Categoría</th>
+                        <th class="hidden lg:table-cell text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">Documento</th>
+                        <th class="hidden sm:table-cell text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">Categoría</th>
                         <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">Estado</th>
-                        <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">Grupo familiar</th>
+                        <th class="hidden lg:table-cell text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">Grupo familiar</th>
                         <th class="px-4 py-3 w-24"></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @foreach($socios as $socio)
                         <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-4 py-3 font-mono font-medium text-slate-700">{{ $socio->numero_socio }}</td>
+                            <td class="hidden sm:table-cell px-4 py-3 font-mono font-medium text-slate-700">{{ $socio->numero_socio }}</td>
                             <td class="px-4 py-3">
                                 <a href="{{ route('socios.show', $socio) }}" class="font-medium text-slate-900 hover:text-blue-600 transition-colors">
                                     {{ $socio->nombreCompleto() }}
                                 </a>
+                                <span class="sm:hidden block text-xs text-slate-400 mt-0.5 font-mono">N° {{ $socio->numero_socio }}</span>
                             </td>
-                            <td class="px-4 py-3 text-slate-600">
+                            <td class="hidden lg:table-cell px-4 py-3 text-slate-600">
                                 <span class="text-xs text-slate-400">{{ $socio->tipo_documento }}</span>
                                 {{ $socio->numero_documento }}
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="hidden sm:table-cell px-4 py-3">
                                 @php
                                     $catClases = [
                                         'adulto'   => 'bg-blue-50 text-blue-700',
@@ -139,7 +140,7 @@
                                     {{ \App\Models\Socio::etiquetaEstado($socio->estado) }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3 text-slate-500">
+                            <td class="hidden lg:table-cell px-4 py-3 text-slate-500">
                                 @if($socio->esTitular())
                                     <span class="text-xs text-slate-400">Titular</span>
                                 @else

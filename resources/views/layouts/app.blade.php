@@ -133,6 +133,32 @@
             </div>
 
             <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest px-3 mb-1.5">Comunicación</p>
+                <ul class="space-y-0.5">
+                    <li>
+                        <a href="{{ route('comunicaciones.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                                {{ request()->routeIs('comunicaciones.*') ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
+                            </svg>
+                            Comunicaciones
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('noticias.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                                {{ request()->routeIs('noticias.*') ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z"/>
+                            </svg>
+                            Tablón de noticias
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest px-3 mb-1.5">Finanzas</p>
                 <ul class="space-y-0.5">
                     <li>
@@ -143,16 +169,6 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
                             </svg>
                             Deudores
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('comunicaciones.index') }}"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                                {{ request()->routeIs('comunicaciones.*') ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
-                            </svg>
-                            Comunicaciones
                         </a>
                     </li>
                     <li>
@@ -331,6 +347,11 @@
                             class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
                                 {{ request()->routeIs('cuotas.config*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
                             Configurar cuotas
+                        </a>
+                        <a href="{{ route('noticias.index') }}"
+                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                                {{ request()->routeIs('noticias.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
+                            Tablón de noticias
                         </a>
                     @endif
                     @if(auth()->user()->esDesarrollador())

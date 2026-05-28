@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CuotaConfig;
+use App\Models\DisciplinaInscripcionLog;
 use App\Models\Ingreso;
 use App\Models\Socio;
 use Illuminate\Http\RedirectResponse;
@@ -84,7 +85,12 @@ class SocioController extends Controller
 
         $cuotaBase = CuotaConfig::montoParaSocio($socio);
 
-        return view('socios.show', compact('socio', 'cuotaBase'));
+        $logDisciplinas = DisciplinaInscripcionLog::with(['disciplina', 'registradoPor'])
+            ->where('socio_id', $socio->id)
+            ->latest('created_at')
+            ->get();
+
+        return view('socios.show', compact('socio', 'cuotaBase', 'logDisciplinas'));
     }
 
     public function edit(Socio $socio): View

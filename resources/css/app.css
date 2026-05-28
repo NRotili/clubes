@@ -1,4 +1,34 @@
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* Quill editor overrides */
+.ql-toolbar.ql-snow {
+    border: 1px solid #cbd5e1;
+    border-bottom: none;
+    border-radius: 0.5rem 0.5rem 0 0;
+    background: #f8fafc;
+    font-family: inherit;
+}
+.ql-container.ql-snow {
+    border: 1px solid #cbd5e1;
+    border-radius: 0 0 0.5rem 0.5rem;
+    font-family: inherit;
+    font-size: 0.875rem;
+}
+.ql-editor {
+    min-height: 200px;
+    color: #0f172a;
+}
+.ql-editor.ql-blank::before {
+    color: #94a3b8;
+    font-style: normal;
+}
+.ql-snow .ql-stroke { stroke: #475569; }
+.ql-snow .ql-fill  { fill: #475569; }
+.ql-snow.ql-toolbar button:hover .ql-stroke,
+.ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: #2563eb; }
+.ql-snow.ql-toolbar button:hover .ql-fill,
+.ql-snow.ql-toolbar button.ql-active .ql-fill  { fill: #2563eb; }
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

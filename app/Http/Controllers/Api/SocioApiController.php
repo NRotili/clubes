@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ClubConfig;
 use App\Models\CuotaMensual;
+use App\Models\Disciplina;
+use App\Models\DisciplinaInscripcionLog;
+use App\Models\Noticia;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -187,6 +190,111 @@ class SocioApiController extends Controller
         ]);
 
         return response()->json(['disciplinas' => $data]);
+    }
+
+    public function calendario(Request $request): JsonResponse
+    {
+        $dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+
+        $socio = $request->user()->socio;
+        $inscriptoIds = $socio->disciplinas()
+            ->wherePivot('estado', 'activa')
+            ->pluck('disciplinas.id')
+            ->flip();
+
+        $disciplinas = Disciplina::where('estado', 'activa')
+            ->with(['horarios', 'profesores'])
+            ->orderBy('nombre')
+            ->get();
+
+        $porDia = [];
+        foreach ($dias as $dia) {
+            $clases = [];
+            foreach ($disciplinas as $d) {
+                foreach ($d->horarios->where('dia_semana', $dia) as $h) {
+                    $clases[] = [
+                        'id'          => $d->id,
+                        'nombre'      => $d->nombre,
+                        'hora_inicio' => substr($h->hora_inicio, 0, 5),
+                        'hora_fin'    => substr($h->hora_fin, 0, 5),
+                        'profesores'  => $d->profesores->map(fn($p) => $p->nombreCompleto())->values(),
+                        'inscripto'   => $inscriptoIds->has($d->id),
+                    ];
+                }
+            }
+            usort($clases, fn($a, $b) => $a['hora_inicio'] <=> $b['hora_inicio']);
+            $porDia[$dia] = $clases;
+        }
+
+        return response()->json(['calendario' => $porDia]);
+    }
+
+    public function inscribirDisciplina(Request $request, Disciplina $disciplina): JsonResponse
+    {
+        $socio = $request->user()->socio;
+
+        $disciplina->socios()->syncWithoutDetaching([
+            $socio->id => [
+                'fecha_inscripcion' => now()->toDateString(),
+                'estado'            => 'activa',
+            ],
+        ]);
+
+        DisciplinaInscripcionLog::create([
+            'socio_id'      => $socio->id,
+            'disciplina_id' => $disciplina->id,
+            'accion'        => 'inscripcion',
+            'origen'        => 'app',
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function bajaDisciplina(Request $request, Disciplina $disciplina): JsonResponse
+    {
+        $socio = $request->user()->socio;
+
+        $disciplina->socios()->updateExistingPivot($socio->id, ['estado' => 'baja']);
+
+        DisciplinaInscripcionLog::create([
+            'socio_id'      => $socio->id,
+            'disciplina_id' => $disciplina->id,
+            'accion'        => 'baja',
+            'origen'        => 'app',
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function noticias(Request $request): JsonResponse
+    {
+        $user     = $request->user();
+        $leidasHasta = $user->noticias_leidas_hasta;
+
+        $noticias = Noticia::with('autor')
+            ->latest()
+            ->get()
+            ->map(fn($n) => [
+                'id'     => $n->id,
+                'titulo' => $n->titulo,
+                'cuerpo' => $n->cuerpo,
+                'fecha'  => $n->created_at->isoFormat('D [de] MMMM [de] YYYY'),
+                'autor'  => $n->autor->name,
+            ]);
+
+        $noLeidas = Noticia::when(
+            $leidasHasta,
+            fn($q) => $q->where('created_at', '>', $leidasHasta),
+        )->count();
+
+        return response()->json(['noticias' => $noticias, 'no_leidas' => $noLeidas]);
+    }
+
+    public function marcarNoticiasLeidas(Request $request): JsonResponse
+    {
+        $request->user()->update(['noticias_leidas_hasta' => now()]);
+
+        return response()->json(['ok' => true]);
     }
 
     public function ingresos(Request $request): JsonResponse

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Disciplina;
+use App\Models\DisciplinaInscripcionLog;
 use App\Models\Profesor;
 use App\Models\Socio;
 use Illuminate\Http\RedirectResponse;
@@ -165,6 +166,14 @@ class DisciplinaController extends Controller
 
         $socio = Socio::find($request->socio_id);
 
+        DisciplinaInscripcionLog::create([
+            'socio_id'       => $socio->id,
+            'disciplina_id'  => $disciplina->id,
+            'accion'         => 'inscripcion',
+            'origen'         => 'web',
+            'registrado_por' => auth()->id(),
+        ]);
+
         return back()->with('success', "{$socio->nombreCompleto()} fue inscripto en «{$disciplina->nombre}».");
     }
 
@@ -172,12 +181,28 @@ class DisciplinaController extends Controller
     {
         $disciplina->socios()->updateExistingPivot($socio->id, ['estado' => 'baja']);
 
+        DisciplinaInscripcionLog::create([
+            'socio_id'       => $socio->id,
+            'disciplina_id'  => $disciplina->id,
+            'accion'         => 'baja',
+            'origen'         => 'web',
+            'registrado_por' => auth()->id(),
+        ]);
+
         return back()->with('success', "{$socio->nombreCompleto()} fue dado de baja de «{$disciplina->nombre}».");
     }
 
     public function reactivar(Disciplina $disciplina, Socio $socio): RedirectResponse
     {
         $disciplina->socios()->updateExistingPivot($socio->id, ['estado' => 'activa']);
+
+        DisciplinaInscripcionLog::create([
+            'socio_id'       => $socio->id,
+            'disciplina_id'  => $disciplina->id,
+            'accion'         => 'reactivacion',
+            'origen'         => 'web',
+            'registrado_por' => auth()->id(),
+        ]);
 
         return back()->with('success', "{$socio->nombreCompleto()} fue reactivado en «{$disciplina->nombre}».");
     }

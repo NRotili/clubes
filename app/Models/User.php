@@ -21,6 +21,7 @@ class User extends Authenticatable
         'rol',
         'socio_id',
         'expo_push_token',
+        'noticias_leidas_hasta',
     ];
 
     protected $hidden = [

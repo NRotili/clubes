@@ -410,6 +410,46 @@
     @endif
 </div>
 
+{{-- Historial de inscripciones en disciplinas --}}
+@if(auth()->user()->puedeGestionarSocios() && $logDisciplinas->isNotEmpty())
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6">
+    <div class="px-5 py-3.5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+        <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Historial de disciplinas</h2>
+        <span class="text-xs text-slate-400">{{ $logDisciplinas->count() }} {{ $logDisciplinas->count() === 1 ? 'movimiento' : 'movimientos' }}</span>
+    </div>
+    <ul class="divide-y divide-slate-100">
+        @foreach($logDisciplinas as $log)
+            @php
+                $config = match($log->accion) {
+                    'inscripcion' => ['dot' => 'bg-green-500',  'texto' => 'text-green-700',  'label' => 'Inscripción'],
+                    'baja'        => ['dot' => 'bg-red-400',    'texto' => 'text-red-600',    'label' => 'Baja'],
+                    'reactivacion'=> ['dot' => 'bg-blue-500',   'texto' => 'text-blue-700',   'label' => 'Reactivación'],
+                };
+            @endphp
+            <li class="flex items-center gap-3 px-5 py-3">
+                <span class="w-2 h-2 rounded-full shrink-0 {{ $config['dot'] }}"></span>
+                <div class="flex-1 min-w-0">
+                    <span class="text-sm font-medium {{ $config['texto'] }}">{{ $config['label'] }}</span>
+                    <span class="text-sm text-slate-700 ml-1">en <span class="font-medium">{{ $log->disciplina->nombre }}</span></span>
+                </div>
+                <div class="text-right shrink-0 space-y-0.5">
+                    <p class="text-xs text-slate-500">{{ $log->created_at->format('d/m/Y H:i') }}</p>
+                    <p class="text-xs text-slate-400">
+                        @if($log->origen === 'app')
+                            Desde la app
+                        @elseif($log->registradoPor)
+                            Por {{ $log->registradoPor->name }}
+                        @else
+                            —
+                        @endif
+                    </p>
+                </div>
+            </li>
+        @endforeach
+    </ul>
+</div>
+@endif
+
 {{-- QR de acceso --}}
 @if($socio->qr_uuid)
 <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6">

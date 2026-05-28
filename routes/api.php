@@ -15,6 +15,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('me/password',       [SocioApiController::class, 'changePassword']);
     Route::post('me/push-token',     [SocioApiController::class, 'savePushToken']);
     Route::get('cuotas',             [SocioApiController::class, 'cuotas']);
+    Route::get('noticias',           [SocioApiController::class, 'noticias']);
+    Route::post('noticias/marcar-leidas', [SocioApiController::class, 'marcarNoticiasLeidas']);
     Route::get('disciplinas',        [SocioApiController::class, 'disciplinas']);
+    Route::get('calendario',                          [SocioApiController::class, 'calendario']);
+    Route::post('disciplinas/{disciplina}/inscribir', [SocioApiController::class, 'inscribirDisciplina']);
+    Route::patch('disciplinas/{disciplina}/baja',     [SocioApiController::class, 'bajaDisciplina']);
     Route::get('ingresos',           [SocioApiController::class, 'ingresos']);
 });

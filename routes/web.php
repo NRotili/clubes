@@ -13,6 +13,7 @@ use App\Http\Controllers\PagoController;
 use App\Http\Controllers\DisciplinaController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProfesorController;
+use App\Http\Controllers\NoticiaController;
 use App\Http\Controllers\SocioController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +51,10 @@ Route::middleware('auth')->group(function () {
         Route::get('comunicaciones',             [ComunicacionController::class, 'index'])->name('comunicaciones.index');
         Route::post('comunicaciones',            [ComunicacionController::class, 'store'])->name('comunicaciones.store');
         Route::post('comunicaciones/socio/{socio}', [ComunicacionController::class, 'storeSocio'])->name('comunicaciones.socio');
+        Route::get('noticias',           [NoticiaController::class, 'index'])->name('noticias.index');
+        Route::get('noticias/create',    [NoticiaController::class, 'create'])->name('noticias.create');
+        Route::post('noticias',          [NoticiaController::class, 'store'])->name('noticias.store');
+        Route::delete('noticias/{noticia}', [NoticiaController::class, 'destroy'])->name('noticias.destroy');
     });
 
     // ── Gestión de socios (administración + desarrollador) ────────────────────
