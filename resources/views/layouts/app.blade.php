@@ -303,96 +303,131 @@
             </div>
 
             {{-- Menú móvil desplegable --}}
-            <div id="mobile-menu" class="hidden border-t border-slate-100 bg-white">
-                <nav class="px-4 py-3 flex flex-col gap-1">
-                    <div class="px-3 py-2 mb-1 border-b border-slate-100">
+            <div id="mobile-menu" class="hidden border-t border-slate-100 bg-white max-h-[80vh] overflow-y-auto">
+                <nav class="px-4 py-3 flex flex-col gap-0.5">
+
+                    {{-- Usuario --}}
+                    <div class="px-3 py-2 mb-2 border-b border-slate-100">
                         <p class="text-sm font-semibold text-slate-900">{{ auth()->user()->name }}</p>
                         <span class="text-xs text-slate-500">{{ \App\Models\User::etiquetaRol(auth()->user()->rol) }}</span>
                     </div>
 
                     @if(auth()->user()->puedeGestionarSocios())
-                        <a href="{{ route('dashboard') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('dashboard') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Dashboard
-                        </a>
-                        <a href="{{ route('socios.index') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('socios.index', 'socios.create', 'socios.edit', 'socios.show') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
+
+                    {{-- Dashboard (sin sección) --}}
+                    <a href="{{ route('dashboard') }}"
+                        class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                            {{ request()->routeIs('dashboard') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
+                        Dashboard
+                    </a>
+
+                    @php
+                        $seccionAbierta = match(true) {
+                            request()->routeIs('socios.*', 'escaner.*', 'asistencia.*') => 'socios',
+                            request()->routeIs('disciplinas.*', 'profesores.*')          => 'actividades',
+                            request()->routeIs('comunicaciones.*', 'noticias.*')         => 'comunicacion',
+                            request()->routeIs('deudores.*', 'finanzas.*', 'cuotas.*', 'pagos.*') => 'finanzas',
+                            request()->routeIs('club.config*')                           => 'config',
+                            default => null,
+                        };
+                    @endphp
+
+                    {{-- Macro para sección colapsable --}}
+                    @php
+                        function mobileSection($id, $label, $isOpen) {
+                            $arrow = $isOpen ? 'rotate-180' : '';
+                            $hidden = $isOpen ? '' : 'hidden';
+                            return [$arrow, $hidden];
+                        }
+                    @endphp
+
+                    {{-- Socios --}}
+                    @php [$arrow, $hidden] = mobileSection('socios', '', $seccionAbierta === 'socios') @endphp
+                    <div class="mobile-section">
+                        <button type="button" onclick="toggleSection('m-socios')"
+                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-semibold text-slate-500 uppercase tracking-wide hover:bg-slate-50 transition-colors">
                             Socios
-                        </a>
-                        <a href="{{ route('escaner.index') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('escaner.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Escáner QR
-                        </a>
-                        <a href="{{ route('asistencia.index') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('asistencia.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Asistencia QR
-                        </a>
-                        <a href="{{ route('socios.trash') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('socios.trash') ? 'bg-amber-50 text-amber-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Papelera
-                        </a>
-                        <a href="{{ route('disciplinas.index') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('disciplinas.index', 'disciplinas.create', 'disciplinas.show', 'disciplinas.edit') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Disciplinas
-                        </a>
-                        <a href="{{ route('disciplinas.calendario') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('disciplinas.calendario') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Calendario
-                        </a>
-                        <a href="{{ route('profesores.index') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('profesores.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Profesores
-                        </a>
-                        <a href="{{ route('comunicaciones.index') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('comunicaciones.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Comunicaciones
-                        </a>
-                        <a href="{{ route('noticias.index') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('noticias.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Tablón de noticias
-                        </a>
-                        <a href="{{ route('deudores.index') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('deudores.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Deudores
-                        </a>
-                        <a href="{{ route('finanzas.index') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('finanzas.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Ingresos y egresos
-                        </a>
-                        <a href="{{ route('cuotas.index') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('cuotas.index', 'cuotas.show', 'pagos.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Cobros
-                        </a>
-                        <a href="{{ route('club.config') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('club.config*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Datos del club
-                        </a>
-                        <a href="{{ route('cuotas.config') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('cuotas.config*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Configurar cuotas
-                        </a>
-                    @endif
-                    @if(auth()->user()->esDesarrollador())
-                        <a href="{{ route('usuarios.index') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('usuarios.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Usuarios
-                        </a>
+                            <svg class="w-4 h-4 transition-transform {{ $arrow }}" id="m-socios-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                            </svg>
+                        </button>
+                        <div id="m-socios" class="flex flex-col gap-0.5 pl-2 {{ $hidden }}">
+                            <a href="{{ route('socios.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('socios.index', 'socios.create', 'socios.edit', 'socios.show') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Socios</a>
+                            <a href="{{ route('escaner.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('escaner.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Escáner QR</a>
+                            <a href="{{ route('asistencia.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('asistencia.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Asistencia QR</a>
+                            <a href="{{ route('socios.trash') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('socios.trash') ? 'bg-amber-50 text-amber-700' : 'text-slate-600 hover:bg-slate-100' }}">Papelera</a>
+                        </div>
+                    </div>
+
+                    {{-- Actividades --}}
+                    @php [$arrow, $hidden] = mobileSection('actividades', '', $seccionAbierta === 'actividades') @endphp
+                    <div class="mobile-section">
+                        <button type="button" onclick="toggleSection('m-actividades')"
+                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-semibold text-slate-500 uppercase tracking-wide hover:bg-slate-50 transition-colors">
+                            Actividades
+                            <svg class="w-4 h-4 transition-transform {{ $arrow }}" id="m-actividades-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                            </svg>
+                        </button>
+                        <div id="m-actividades" class="flex flex-col gap-0.5 pl-2 {{ $hidden }}">
+                            <a href="{{ route('disciplinas.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('disciplinas.index', 'disciplinas.create', 'disciplinas.show', 'disciplinas.edit') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Disciplinas</a>
+                            <a href="{{ route('disciplinas.calendario') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('disciplinas.calendario') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Calendario</a>
+                            <a href="{{ route('profesores.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('profesores.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Profesores</a>
+                        </div>
+                    </div>
+
+                    {{-- Comunicación --}}
+                    @php [$arrow, $hidden] = mobileSection('comunicacion', '', $seccionAbierta === 'comunicacion') @endphp
+                    <div class="mobile-section">
+                        <button type="button" onclick="toggleSection('m-comunicacion')"
+                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-semibold text-slate-500 uppercase tracking-wide hover:bg-slate-50 transition-colors">
+                            Comunicación
+                            <svg class="w-4 h-4 transition-transform {{ $arrow }}" id="m-comunicacion-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                            </svg>
+                        </button>
+                        <div id="m-comunicacion" class="flex flex-col gap-0.5 pl-2 {{ $hidden }}">
+                            <a href="{{ route('comunicaciones.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('comunicaciones.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Comunicaciones</a>
+                            <a href="{{ route('noticias.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('noticias.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Tablón de noticias</a>
+                        </div>
+                    </div>
+
+                    {{-- Finanzas --}}
+                    @php [$arrow, $hidden] = mobileSection('finanzas', '', $seccionAbierta === 'finanzas') @endphp
+                    <div class="mobile-section">
+                        <button type="button" onclick="toggleSection('m-finanzas')"
+                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-semibold text-slate-500 uppercase tracking-wide hover:bg-slate-50 transition-colors">
+                            Finanzas
+                            <svg class="w-4 h-4 transition-transform {{ $arrow }}" id="m-finanzas-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                            </svg>
+                        </button>
+                        <div id="m-finanzas" class="flex flex-col gap-0.5 pl-2 {{ $hidden }}">
+                            <a href="{{ route('deudores.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('deudores.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Deudores</a>
+                            <a href="{{ route('finanzas.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('finanzas.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Ingresos y egresos</a>
+                            <a href="{{ route('cuotas.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('cuotas.index', 'cuotas.show', 'pagos.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Cobros</a>
+                        </div>
+                    </div>
+
+                    {{-- Configuración --}}
+                    @php [$arrow, $hidden] = mobileSection('config', '', $seccionAbierta === 'config') @endphp
+                    <div class="mobile-section">
+                        <button type="button" onclick="toggleSection('m-config')"
+                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-semibold text-slate-500 uppercase tracking-wide hover:bg-slate-50 transition-colors">
+                            Configuración
+                            <svg class="w-4 h-4 transition-transform {{ $arrow }}" id="m-config-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                            </svg>
+                        </button>
+                        <div id="m-config" class="flex flex-col gap-0.5 pl-2 {{ $hidden }}">
+                            <a href="{{ route('club.config') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('club.config*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Datos del club</a>
+                            <a href="{{ route('cuotas.config') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('cuotas.config*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Configurar cuotas</a>
+                            @if(auth()->user()->esDesarrollador())
+                                <a href="{{ route('usuarios.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('usuarios.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Usuarios</a>
+                            @endif
+                        </div>
+                    </div>
+
                     @endif
 
                     <div class="mt-2 pt-2 border-t border-slate-100">
@@ -467,6 +502,15 @@
         iconClose.classList.toggle('hidden', open);
     });
 })();
+
+function toggleSection(id) {
+    const content = document.getElementById(id);
+    const arrow   = document.getElementById(id + '-arrow');
+    if (!content) return;
+    const isHidden = content.classList.contains('hidden');
+    content.classList.toggle('hidden', !isHidden);
+    if (arrow) arrow.classList.toggle('rotate-180', isHidden);
+}
 </script>
 
 </body>
