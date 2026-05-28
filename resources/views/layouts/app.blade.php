@@ -311,10 +311,25 @@
                     </div>
 
                     @if(auth()->user()->puedeGestionarSocios())
+                        <a href="{{ route('dashboard') }}"
+                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                                {{ request()->routeIs('dashboard') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
+                            Dashboard
+                        </a>
                         <a href="{{ route('socios.index') }}"
                             class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
                                 {{ request()->routeIs('socios.index', 'socios.create', 'socios.edit', 'socios.show') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
                             Socios
+                        </a>
+                        <a href="{{ route('escaner.index') }}"
+                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                                {{ request()->routeIs('escaner.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
+                            Escáner QR
+                        </a>
+                        <a href="{{ route('asistencia.index') }}"
+                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                                {{ request()->routeIs('asistencia.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
+                            Asistencia QR
                         </a>
                         <a href="{{ route('socios.trash') }}"
                             class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
@@ -336,6 +351,21 @@
                                 {{ request()->routeIs('profesores.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
                             Profesores
                         </a>
+                        <a href="{{ route('comunicaciones.index') }}"
+                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                                {{ request()->routeIs('comunicaciones.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
+                            Comunicaciones
+                        </a>
+                        <a href="{{ route('noticias.index') }}"
+                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                                {{ request()->routeIs('noticias.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
+                            Tablón de noticias
+                        </a>
+                        <a href="{{ route('deudores.index') }}"
+                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                                {{ request()->routeIs('deudores.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
+                            Deudores
+                        </a>
                         <a href="{{ route('finanzas.index') }}"
                             class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
                                 {{ request()->routeIs('finanzas.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
@@ -346,15 +376,15 @@
                                 {{ request()->routeIs('cuotas.index', 'cuotas.show', 'pagos.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
                             Cobros
                         </a>
+                        <a href="{{ route('club.config') }}"
+                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                                {{ request()->routeIs('club.config*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
+                            Datos del club
+                        </a>
                         <a href="{{ route('cuotas.config') }}"
                             class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
                                 {{ request()->routeIs('cuotas.config*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
                             Configurar cuotas
-                        </a>
-                        <a href="{{ route('noticias.index') }}"
-                            class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
-                                {{ request()->routeIs('noticias.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
-                            Tablón de noticias
                         </a>
                     @endif
                     @if(auth()->user()->esDesarrollador())
