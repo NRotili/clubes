@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\AsistenciaDisciplina;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Disciplina extends Model
@@ -50,6 +51,11 @@ class Disciplina extends Model
             ->withTimestamps()
             ->orderBy('apellido')
             ->orderBy('nombre');
+    }
+
+    public function asistencias(): HasMany
+    {
+        return $this->hasMany(AsistenciaDisciplina::class);
     }
 
     public function sociosActivos(): BelongsToMany

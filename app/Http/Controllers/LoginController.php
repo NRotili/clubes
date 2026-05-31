@@ -33,6 +33,7 @@ class LoginController extends Controller
 
         if ($user->rol === 'socio') {
             if ($user->socio_id) {
+                $request->session()->forget('url.intended');
                 return redirect()->route('socios.show', $user->socio_id);
             }
 
@@ -42,6 +43,21 @@ class LoginController extends Controller
 
             return back()->withErrors([
                 'email' => 'Tu cuenta no tiene un perfil de socio vinculado. Contactá a la administración.',
+            ])->onlyInput('email');
+        }
+
+        if ($user->rol === 'profesor') {
+            if ($user->profesor_id) {
+                $request->session()->forget('url.intended');
+                return redirect()->route('profesor.mis-clases');
+            }
+
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()->withErrors([
+                'email' => 'Tu cuenta no tiene un profesor vinculado. Contactá a la administración.',
             ])->onlyInput('email');
         }
 

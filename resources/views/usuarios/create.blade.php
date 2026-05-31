@@ -87,15 +87,18 @@
                     class="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white
                         {{ $errors->has('rol') ? 'border-red-400 bg-red-50' : 'border-slate-300' }}">
                     <option value="administracion" {{ old('rol', 'administracion') === 'administracion' ? 'selected' : '' }}>Administración</option>
+                    <option value="profesor"       {{ old('rol') === 'profesor'       ? 'selected' : '' }}>Profesor</option>
                     <option value="socio"          {{ old('rol') === 'socio'          ? 'selected' : '' }}>Socio</option>
                     <option value="desarrollador"  {{ old('rol') === 'desarrollador'  ? 'selected' : '' }}>Desarrollador</option>
                 </select>
                 @error('rol') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
-            <div id="socio-campo" class="{{ old('rol') === 'socio' ? '' : 'hidden' }}">
+            <div id="socio-campo" class="{{ in_array(old('rol'), ['socio','profesor']) ? '' : 'hidden' }}">
                 <label for="socio_id" class="block text-sm font-medium text-slate-700 mb-1.5">
-                    Socio vinculado <span class="text-red-500">*</span>
+                    Socio vinculado
+                    <span id="socio-requerido" class="{{ old('rol') === 'socio' ? '' : 'hidden' }} text-red-500">*</span>
+                    <span id="socio-opcional" class="{{ old('rol') === 'profesor' ? '' : 'hidden' }} text-slate-400 font-normal">(opcional)</span>
                 </label>
                 <select id="socio_id" name="socio_id"
                     class="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white
@@ -109,6 +112,24 @@
                 </select>
                 <p class="mt-1 text-xs text-slate-500">Solo se muestran socios sin cuenta de acceso.</p>
                 @error('socio_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div id="profesor-campo" class="{{ old('rol') === 'profesor' ? '' : 'hidden' }}">
+                <label for="profesor_id" class="block text-sm font-medium text-slate-700 mb-1.5">
+                    Profesor vinculado <span class="text-red-500">*</span>
+                </label>
+                <select id="profesor_id" name="profesor_id"
+                    class="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white
+                        {{ $errors->has('profesor_id') ? 'border-red-400 bg-red-50' : 'border-slate-300' }}">
+                    <option value="">Seleccionar profesor…</option>
+                    @foreach($profesores as $p)
+                        <option value="{{ $p->id }}" {{ old('profesor_id') == $p->id ? 'selected' : '' }}>
+                            {{ $p->nombreCompleto() }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="mt-1 text-xs text-slate-500">Solo se muestran profesores sin cuenta de acceso.</p>
+                @error('profesor_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
         </div>
@@ -128,7 +149,12 @@
 
 <script>
     document.getElementById('rol').addEventListener('change', function () {
-        document.getElementById('socio-campo').classList.toggle('hidden', this.value !== 'socio');
+        const esSocio    = this.value === 'socio';
+        const esProfesor = this.value === 'profesor';
+        document.getElementById('socio-campo').classList.toggle('hidden', !esSocio && !esProfesor);
+        document.getElementById('profesor-campo').classList.toggle('hidden', !esProfesor);
+        document.getElementById('socio-requerido').classList.toggle('hidden', !esSocio);
+        document.getElementById('socio-opcional').classList.toggle('hidden', !esProfesor);
     });
 </script>
 

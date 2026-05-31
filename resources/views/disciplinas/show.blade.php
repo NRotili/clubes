@@ -84,6 +84,29 @@
 
 </div>
 
+{{-- Asistencia --}}
+<div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6">
+    <div class="px-5 py-3.5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+        <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Asistencia</h2>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('disciplinas.asistencia.tomar', $disciplina) }}"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                Tomar lista
+            </a>
+            <a href="{{ route('disciplinas.asistencia.planilla', $disciplina) }}"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                Ver planilla
+            </a>
+        </div>
+    </div>
+    <div class="px-5 py-4 text-sm text-slate-500">
+        Registrá la asistencia de cada clase y consultá la planilla mensual de presencias.
+    </div>
+</div>
+
 {{-- Profesores --}}
 <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden mb-6">
     <div class="px-5 py-3.5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">

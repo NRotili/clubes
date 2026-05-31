@@ -94,6 +94,7 @@
                         class="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white
                             {{ $errors->has('rol') ? 'border-red-400 bg-red-50' : 'border-slate-300' }}">
                         <option value="administracion" {{ old('rol', $usuario->rol) === 'administracion' ? 'selected' : '' }}>Administración</option>
+                        <option value="profesor"       {{ old('rol', $usuario->rol) === 'profesor'       ? 'selected' : '' }}>Profesor</option>
                         <option value="socio"          {{ old('rol', $usuario->rol) === 'socio'          ? 'selected' : '' }}>Socio</option>
                         <option value="desarrollador"  {{ old('rol', $usuario->rol) === 'desarrollador'  ? 'selected' : '' }}>Desarrollador</option>
                     </select>
@@ -101,9 +102,27 @@
                 @error('rol') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
             </div>
 
-            <div id="socio-campo" class="{{ old('rol', $usuario->rol) === 'socio' ? '' : 'hidden' }}">
+            <div id="profesor-campo" class="{{ old('rol', $usuario->rol) === 'profesor' ? '' : 'hidden' }}">
+                <label for="profesor_id" class="block text-sm font-medium text-slate-700 mb-1.5">
+                    Profesor vinculado
+                </label>
+                <select id="profesor_id" name="profesor_id"
+                    class="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white
+                        {{ $errors->has('profesor_id') ? 'border-red-400 bg-red-50' : 'border-slate-300' }}">
+                    <option value="">Sin vincular</option>
+                    @foreach($profesores as $p)
+                        <option value="{{ $p->id }}" {{ old('profesor_id', $usuario->profesor_id) == $p->id ? 'selected' : '' }}>
+                            {{ $p->nombreCompleto() }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('profesor_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+
+            <div id="socio-campo" class="{{ in_array(old('rol', $usuario->rol), ['socio','profesor']) ? '' : 'hidden' }}">
                 <label for="socio_id" class="block text-sm font-medium text-slate-700 mb-1.5">
                     Socio vinculado
+                    <span id="socio-opcional" class="{{ old('rol', $usuario->rol) === 'profesor' ? '' : 'hidden' }} text-slate-400 font-normal">(opcional)</span>
                 </label>
                 <select id="socio_id" name="socio_id"
                     class="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white
@@ -137,7 +156,11 @@
     const rolSelect = document.getElementById('rol');
     if (rolSelect) {
         rolSelect.addEventListener('change', function () {
-            document.getElementById('socio-campo').classList.toggle('hidden', this.value !== 'socio');
+            const esSocio    = this.value === 'socio';
+            const esProfesor = this.value === 'profesor';
+            document.getElementById('socio-campo').classList.toggle('hidden', !esSocio && !esProfesor);
+            document.getElementById('profesor-campo').classList.toggle('hidden', !esProfesor);
+            document.getElementById('socio-opcional').classList.toggle('hidden', !esProfesor);
         });
     }
 </script>

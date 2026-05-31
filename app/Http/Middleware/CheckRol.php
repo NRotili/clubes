@@ -17,9 +17,13 @@ class CheckRol
                 abort(403);
             }
 
-            // Socios autenticados: redirigir a su propio perfil
             if ($user && $user->rol === 'socio' && $user->socio_id) {
                 return redirect()->route('socios.show', $user->socio_id)
+                    ->with('error', 'No tenés permiso para acceder a esa sección.');
+            }
+
+            if ($user && $user->rol === 'profesor') {
+                return redirect()->route('profesor.mis-clases')
                     ->with('error', 'No tenés permiso para acceder a esa sección.');
             }
 

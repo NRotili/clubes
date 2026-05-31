@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Profesor;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -20,6 +21,7 @@ class User extends Authenticatable
         'password',
         'rol',
         'socio_id',
+        'profesor_id',
         'expo_push_token',
         'noticias_leidas_hasta',
     ];
@@ -42,6 +44,11 @@ class User extends Authenticatable
         return $this->belongsTo(Socio::class, 'socio_id');
     }
 
+    public function profesor(): BelongsTo
+    {
+        return $this->belongsTo(Profesor::class, 'profesor_id');
+    }
+
     public function esDesarrollador(): bool
     {
         return $this->rol === 'desarrollador';
@@ -57,6 +64,11 @@ class User extends Authenticatable
         return $this->rol === 'socio';
     }
 
+    public function esProfesor(): bool
+    {
+        return $this->rol === 'profesor';
+    }
+
     public function puedeGestionarSocios(): bool
     {
         return in_array($this->rol, ['desarrollador', 'administracion']);
@@ -67,8 +79,9 @@ class User extends Authenticatable
         return match ($rol) {
             'desarrollador' => 'Desarrollador',
             'administracion' => 'Administración',
-            'socio' => 'Socio',
-            default => ucfirst($rol),
+            'socio'         => 'Socio',
+            'profesor'      => 'Profesor',
+            default         => ucfirst($rol),
         };
     }
 }

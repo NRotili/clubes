@@ -76,8 +76,8 @@ class SocioController extends Controller
     {
         $user = auth()->user();
 
-        // El rol "socio" solo puede ver su propio perfil
-        if ($user->esSocio() && $user->socio_id !== $socio->id) {
+        // Socios y profesores solo pueden ver su propio perfil
+        if (($user->esSocio() || $user->esProfesor()) && $user->socio_id !== $socio->id) {
             abort(403, 'Solo podés ver tu propio perfil.');
         }
 

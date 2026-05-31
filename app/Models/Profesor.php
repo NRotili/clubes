@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Profesor extends Model
@@ -22,6 +23,11 @@ class Profesor extends Model
         'estado',
         'observaciones',
     ];
+
+    public function usuario(): HasOne
+    {
+        return $this->hasOne(User::class, 'profesor_id');
+    }
 
     public function disciplinas(): BelongsToMany
     {

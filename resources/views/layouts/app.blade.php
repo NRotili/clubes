@@ -36,6 +36,24 @@
         {{-- Nav groups --}}
         <nav class="flex-1 px-3 py-5 space-y-6 overflow-y-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-slate-900 [&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-500">
 
+            @if(auth()->user()->esProfesor())
+            {{-- Menú profesor --}}
+            <div>
+                <ul class="space-y-0.5">
+                    <li>
+                        <a href="{{ route('profesor.mis-clases') }}"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                                {{ request()->routeIs('profesor.mis-clases', 'disciplinas.asistencia.*') ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                            </svg>
+                            Mis clases
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            @endif
+
             @if(auth()->user()->puedeGestionarSocios())
             {{-- Dashboard --}}
             <div>

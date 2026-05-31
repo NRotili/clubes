@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AsistenciaController;
+use App\Http\Controllers\AsistenciaDisciplinaController;
+use App\Http\Controllers\MisClasesController;
 use App\Http\Controllers\ClubConfigController;
 use App\Http\Controllers\ComunicacionController;
 use App\Http\Controllers\CuotaConfigController;
@@ -96,6 +98,7 @@ Route::middleware('auth')->group(function () {
         Route::post('disciplinas/{disciplina}/profesores',             [DisciplinaController::class, 'asignarProfesor'])->name('disciplinas.profesores.asignar');
         Route::delete('disciplinas/{disciplina}/profesores/{profesor}', [DisciplinaController::class, 'quitarProfesor'])->name('disciplinas.profesores.quitar');
 
+
         // Profesores
         Route::get('profesores',               [ProfesorController::class, 'index'])->name('profesores.index');
         Route::get('profesores/create',        [ProfesorController::class, 'create'])->name('profesores.create');
@@ -134,6 +137,18 @@ Route::middleware('auth')->group(function () {
         Route::post('configuracion/cuotas', [CuotaConfigController::class, 'update'])->name('cuotas.config.update');
         Route::get('configuracion/club',    [ClubConfigController::class, 'index'])->name('club.config');
         Route::post('configuracion/club',   [ClubConfigController::class, 'update'])->name('club.config.update');
+    });
+
+    // ── Asistencia por disciplina (admin + profesor) ──────────────────────────
+    Route::middleware('rol:administracion,desarrollador,profesor')->group(function () {
+        Route::get('disciplinas/{disciplina}/asistencia',       [AsistenciaDisciplinaController::class, 'planilla'])->name('disciplinas.asistencia.planilla');
+        Route::get('disciplinas/{disciplina}/asistencia/tomar', [AsistenciaDisciplinaController::class, 'tomar'])->name('disciplinas.asistencia.tomar');
+        Route::post('disciplinas/{disciplina}/asistencia',      [AsistenciaDisciplinaController::class, 'store'])->name('disciplinas.asistencia.store');
+    });
+
+    // ── Profesor: mis clases ──────────────────────────────────────────────────
+    Route::middleware('rol:profesor')->group(function () {
+        Route::get('mis-clases', [MisClasesController::class, 'index'])->name('profesor.mis-clases');
     });
 
     // ── Solo desarrollador ────────────────────────────────────────────────────

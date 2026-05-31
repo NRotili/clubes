@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AsistenciaDisciplina;
 use App\Models\ClubConfig;
 use App\Models\CuotaMensual;
 use App\Models\Disciplina;
 use App\Models\DisciplinaInscripcionLog;
 use App\Models\Noticia;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -176,6 +179,28 @@ class SocioApiController extends Controller
             'disciplinas' => fn($q) => $q->wherePivot('estado', 'activa')->with('horarios'),
         ])->firstOrFail();
 
+        $inicioMes = Carbon::now()->startOfMonth();
+        $finMes    = Carbon::now()->endOfMonth();
+
+        $disciplinaIds = $socio->disciplinas->pluck('id');
+
+        // Clases dadas este mes por disciplina (fechas distintas con registros)
+        $clasesDadas = DB::table('asistencia_disciplina')
+            ->select('disciplina_id', DB::raw('COUNT(DISTINCT fecha) as total'))
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->whereIn('disciplina_id', $disciplinaIds)
+            ->groupBy('disciplina_id')
+            ->get()
+            ->keyBy('disciplina_id');
+
+        // Clases asistidas por este socio
+        $asistidas = AsistenciaDisciplina::where('socio_id', $socio->id)
+            ->whereBetween('fecha', [$inicioMes->toDateString(), $finMes->toDateString()])
+            ->whereIn('disciplina_id', $disciplinaIds)
+            ->get()
+            ->groupBy('disciplina_id')
+            ->map->count();
+
         $data = $socio->disciplinas->map(fn($d) => [
             'id'         => $d->id,
             'nombre'     => $d->nombre,
@@ -187,6 +212,10 @@ class SocioApiController extends Controller
                 'hora_inicio' => substr($h->hora_inicio, 0, 5),
                 'hora_fin'    => substr($h->hora_fin, 0, 5),
             ]),
+            'asistencia_mes' => [
+                'clases_dadas'    => (int) ($clasesDadas[$d->id]->total ?? 0),
+                'clases_asistidas' => (int) ($asistidas[$d->id] ?? 0),
+            ],
         ]);
 
         return response()->json(['disciplinas' => $data]);

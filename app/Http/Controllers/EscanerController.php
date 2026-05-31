@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ingreso;
 use App\Models\Socio;
+use App\Services\PushNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -51,6 +52,14 @@ class EscanerController extends Controller
         }
 
         $ingreso = Ingreso::create(['socio_id' => $socio->id, 'ingresado_en' => $ahora]);
+
+        $socio->loadMissing('usuario');
+        PushNotificationService::enviarAlSocio(
+            $socio,
+            '✅ Ingreso registrado',
+            'Tu ingreso al club fue registrado a las ' . $ingreso->ingresado_en->format('H:i') . '.',
+            ['tipo' => 'ingreso']
+        );
 
         return response()->json([
             'tipo'       => 'ok',
