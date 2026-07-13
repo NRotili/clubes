@@ -18,7 +18,14 @@ class AppServiceProvider extends ServiceProvider
         try {
             View::share('club', ClubConfig::todos());
         } catch (\Throwable) {
-            View::share('club', collect());
+            View::share('club', [
+                'nombre'    => null,
+                'logo_url'  => null,
+                'direccion' => '',
+                'telefono'  => '',
+                'email'     => '',
+                'web'       => '',
+            ]);
         }
 
         RateLimiter::for('api-login', function (Request $request) {

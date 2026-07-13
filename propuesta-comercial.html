@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Sistema de Gestión para Clubes — Propuesta</title>
+<style>
+  :root {
+    --primary: #1d4ed8;
+    --primary-dark: #1e3a8a;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .hero {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: white;
+    padding: 64px 32px 48px;
+    text-align: center;
+  }
+  .hero h1 { font-size: 2.2rem; margin: 0 0 12px; }
+  .hero p { font-size: 1.1rem; opacity: 0.92; max-width: 700px; margin: 0 auto; }
+  .container { max-width: 980px; margin: 0 auto; padding: 40px 24px 80px; }
+  h2 {
+    font-size: 1.5rem;
+    color: var(--primary-dark);
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 8px;
+    margin-top: 56px;
+  }
+  h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 6px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card .tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--primary);
+    background: #dbeafe;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .card ul { margin: 8px 0 0; padding-left: 18px; color: var(--muted); font-size: 0.94rem; }
+  .card ul li { margin-bottom: 4px; }
+  .lead {
+    background: var(--card);
+    border-left: 4px solid var(--primary);
+    padding: 18px 22px;
+    border-radius: 8px;
+    color: var(--muted);
+    margin-top: 16px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    background: var(--card);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  th, td {
+    text-align: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.92rem;
+  }
+  th { background: var(--primary-dark); color: white; }
+  td:first-child, th:first-child { text-align: left; }
+  .check { color: #16a34a; font-weight: 700; }
+  .cross { color: #cbd5e1; }
+  .modules-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .module-pill {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-weight: 600;
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .module-pill::before {
+    content: "●";
+    color: var(--primary);
+  }
+  .platforms {
+    display: flex;
+    gap: 16px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .platform-card {
+    flex: 1;
+    min-width: 260px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+  }
+  .platform-card h3 { color: var(--primary-dark); }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    padding: 32px;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Sistema de Gestión Integral para Clubes</h1>
+  <p>Una plataforma web y móvil para administrar socios, disciplinas, cuotas, asistencia, comunicaciones y reservas — todo en un solo lugar, adaptado a la operación diaria de un club.</p>
+</div>
+
+<div class="container">
+
+  <h2>¿Qué resuelve?</h2>
+  <p class="lead">
+    Reemplaza planillas sueltas, grupos de WhatsApp y registros en papel por un sistema centralizado donde la administración del club, los profesores y los socios tienen cada uno su propia vista, con la información siempre actualizada y accesible desde la web o desde una app mobile.
+  </p>
+
+  <h2>Módulos del sistema</h2>
+  <div class="modules-list">
+    <div class="module-pill">Gestión de socios</div>
+    <div class="module-pill">Roles y permisos</div>
+    <div class="module-pill">Disciplinas y asistencia</div>
+    <div class="module-pill">Profesores</div>
+    <div class="module-pill">Cuotas y pagos</div>
+    <div class="module-pill">Finanzas (ingresos/egresos)</div>
+    <div class="module-pill">Control de acceso por QR</div>
+    <div class="module-pill">Comunicaciones (email + push)</div>
+    <div class="module-pill">Tablón de noticias</div>
+    <div class="module-pill">Reserva de instalaciones</div>
+    <div class="module-pill">Configuración de marca del club</div>
+    <div class="module-pill">App mobile (iOS / Android)</div>
+  </div>
+
+  <h2>Detalle por módulo</h2>
+  <div class="grid">
+
+    <div class="card">
+      <span class="tag">Socios</span>
+      <h3>Gestión de socios</h3>
+      <ul>
+        <li>Alta, baja y edición con número de socio automático</li>
+        <li>Grupo familiar vinculado, foto y carnet digital con QR único</li>
+        <li>Papelera con recuperación (soft delete)</li>
+        <li>Verificación pública de socio escaneando su QR</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <span class="tag">Seguridad</span>
+      <h3>Roles y permisos</h3>
+      <ul>
+        <li>Perfiles: administración, profesor, socio (y soporte técnico)</li>
+        <li>Cada rol ve solo lo que le corresponde: un profesor solo administra sus propias disciplinas</li>
+        <li>Login diferenciado según el tipo de usuario</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <span class="tag">Actividades</span>
+      <h3>Disciplinas y asistencia</h3>
+      <ul>
+        <li>Alta de disciplinas con horarios, profesores asignados y becas</li>
+        <li>Toma de asistencia por clase, con alertas si no coincide con el día habitual</li>
+        <li>Planilla mensual de asistencia por socio con porcentajes</li>
+        <li>Calendario de clases visible para socios y profesores</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <span class="tag">Personal</span>
+      <h3>Profesores</h3>
+      <ul>
+        <li>Ficha de profesor vinculada a su usuario del sistema</li>
+        <li>Vista "Mis clases" con asistencia de sus propias disciplinas</li>
+        <li>Un profesor puede ser también socio del club sin duplicar cuentas</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <span class="tag">Cobranza</span>
+      <h3>Cuotas y pagos</h3>
+      <ul>
+        <li>Configuración de montos, día de vencimiento y recargo por mora</li>
+        <li>Generación automática de cuotas mensuales</li>
+        <li>Registro de pagos individuales o por grupo familiar</li>
+        <li>Suspensión automática por mora configurable</li>
+        <li>Notificación automática de vencimientos próximos</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <span class="tag">Administración</span>
+      <h3>Finanzas</h3>
+      <ul>
+        <li>Ingresos generados automáticamente desde los pagos de cuotas</li>
+        <li>Registro manual de egresos del club</li>
+        <li>Vista consolidada del movimiento económico</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <span class="tag">Acceso</span>
+      <h3>Control de acceso por QR</h3>
+      <ul>
+        <li>Escáner web para registrar el ingreso del socio al club</li>
+        <li>Validación anti-duplicados en ventanas cortas de tiempo</li>
+        <li>Notificación push automática al socio al ingresar</li>
+        <li>Historial de ingresos disponible en la app mobile</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <span class="tag">Comunicación</span>
+      <h3>Comunicaciones y noticias</h3>
+      <ul>
+        <li>Envío de mensajes masivos o individuales por email y notificación push</li>
+        <li>Historial de comunicaciones enviadas</li>
+        <li>Tablón de noticias con indicador de no leídas en la app</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <span class="tag">Nuevo</span>
+      <h3>Reserva de instalaciones</h3>
+      <ul>
+        <li>Definición de actividades reservables con franjas horarias por día</li>
+        <li>Reglas configurables: aprobación previa, costo, anticipación mínima, máximo de turnos activos por socio</li>
+        <li>Posibilidad de exigir estar inscripto en una disciplina determinada para poder reservar</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <span class="tag">Identidad</span>
+      <h3>Personalización del club</h3>
+      <ul>
+        <li>Logo, favicon y nombre del club configurables, reflejados en la web y la app</li>
+        <li>Datos de contacto (dirección, teléfono, email, web) centralizados</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <h2>Permisos por rol</h2>
+  <table>
+    <tr>
+      <th>Acción</th>
+      <th>Administración</th>
+      <th>Profesor</th>
+      <th>Socio</th>
+    </tr>
+    <tr><td>Gestión de socios</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td></tr>
+    <tr><td>Tomar asistencia</td><td class="check">✓</td><td>Solo sus disciplinas</td><td class="cross">—</td></tr>
+    <tr><td>Ver planilla de asistencia</td><td class="check">✓</td><td>Solo sus disciplinas</td><td class="cross">—</td></tr>
+    <tr><td>Ver "Mis clases"</td><td class="cross">—</td><td class="check">✓</td><td class="cross">—</td></tr>
+    <tr><td>Ver perfil propio de socio</td><td class="check">✓</td><td>Si está asociado</td><td class="check">✓</td></tr>
+    <tr><td>Gestión de usuarios del sistema</td><td class="check">✓</td><td class="cross">—</td><td class="cross">—</td></tr>
+  </table>
+
+  <h2>Dos formas de uso: web y app mobile</h2>
+  <div class="platforms">
+    <div class="platform-card">
+      <h3>Panel web (administración y profesores)</h3>
+      <p>Gestión completa del club: socios, cuotas, disciplinas, asistencia, finanzas, comunicaciones y configuración general. Pensado para uso desde oficina o recepción.</p>
+    </div>
+    <div class="platform-card">
+      <h3>App mobile (socios)</h3>
+      <p>Disponible para iOS y Android. El socio accede con su carnet digital (QR), consulta el estado de sus cuotas, sus clases inscriptas con porcentaje de asistencia, noticias del club, historial de ingresos y recibe notificaciones push en tiempo real. Incluye inicio de sesión con huella o Face ID.</p>
+    </div>
+  </div>
+
+  <h2>Por qué adoptarlo</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Todo centralizado</h3>
+      <p style="color:var(--muted); margin:0;">La información de socios, pagos y asistencia deja de estar repartida entre planillas, cuadernos y chats.</p>
+    </div>
+    <div class="card">
+      <h3>Menos carga administrativa</h3>
+      <p style="color:var(--muted); margin:0;">Generación automática de cuotas, recordatorios de vencimiento y suspensión por mora sin intervención manual.</p>
+    </div>
+    <div class="card">
+      <h3>Comunicación directa</h3>
+      <p style="color:var(--muted); margin:0;">Notificaciones push y email llegan al socio al instante, sin depender de que abra un grupo de WhatsApp.</p>
+    </div>
+    <div class="card">
+      <h3>Adaptado a la operación real del club</h3>
+      <p style="color:var(--muted); margin:0;">Roles diferenciados, asistencia por disciplina y reservas de instalaciones reflejan cómo funciona un club día a día, no un sistema genérico.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Propuesta generada como documento de referencia interno — sistema de gestión para clubes.
+</footer>
+
+</body>
+</html>

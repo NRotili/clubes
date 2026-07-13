@@ -87,6 +87,11 @@ class Socio extends Model
             ->orderBy('nombre');
     }
 
+    public function turnos(): HasMany
+    {
+        return $this->hasMany(ActividadTurno::class)->orderByDesc('fecha')->orderByDesc('hora_inicio');
+    }
+
     public function getRouteKeyName(): string
     {
         return 'qr_uuid';

@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\ActividadController;
+use App\Http\Controllers\ActividadTurnoController;
+use App\Http\Controllers\ArtisanController;
 use App\Http\Controllers\AsistenciaController;
 use App\Http\Controllers\AsistenciaDisciplinaController;
 use App\Http\Controllers\MisClasesController;
@@ -14,6 +17,7 @@ use App\Http\Controllers\CuotaMensualController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\DisciplinaController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ManualController;
 use App\Http\Controllers\ProfesorController;
 use App\Http\Controllers\NoticiaController;
 use App\Http\Controllers\SocioController;
@@ -42,6 +46,9 @@ Route::get('/', function () {
 
 // ─── Área protegida ───────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
+
+    // ── Manual de uso (todos los roles, cada uno ve el suyo) ──────────────────
+    Route::get('manual', [ManualController::class, 'index'])->name('manual.index');
 
     // ── Dashboard ─────────────────────────────────────────────────────────────
     Route::middleware('rol:administracion,desarrollador')->group(function () {
@@ -109,6 +116,24 @@ Route::middleware('auth')->group(function () {
         Route::delete('profesores/{profesor}', [ProfesorController::class, 'destroy'])->name('profesores.destroy');
     });
 
+    // ── Actividades e instalaciones (administración + desarrollador) ──────────
+    Route::middleware('rol:administracion,desarrollador')->group(function () {
+        Route::get('actividades',                      [ActividadController::class, 'index'])->name('actividades.index');
+        Route::get('actividades/create',               [ActividadController::class, 'create'])->name('actividades.create');
+        Route::post('actividades',                     [ActividadController::class, 'store'])->name('actividades.store');
+        Route::get('actividades/solicitudes',          [ActividadTurnoController::class, 'pendientes'])->name('actividades.turnos.pendientes');
+        Route::get('actividades/{actividad}',          [ActividadController::class, 'show'])->name('actividades.show');
+        Route::get('actividades/{actividad}/edit',     [ActividadController::class, 'edit'])->name('actividades.edit');
+        Route::put('actividades/{actividad}',          [ActividadController::class, 'update'])->name('actividades.update');
+        Route::delete('actividades/{actividad}',       [ActividadController::class, 'destroy'])->name('actividades.destroy');
+        Route::get('actividades/{actividad}/agenda',   [ActividadTurnoController::class, 'agenda'])->name('actividades.agenda');
+        Route::post('actividades/{actividad}/turnos',  [ActividadTurnoController::class, 'store'])->name('actividades.turnos.store');
+        Route::patch('turnos/{turno}/aprobar',         [ActividadTurnoController::class, 'aprobar'])->name('turnos.aprobar');
+        Route::patch('turnos/{turno}/rechazar',        [ActividadTurnoController::class, 'rechazar'])->name('turnos.rechazar');
+        Route::patch('turnos/{turno}/cancelar',        [ActividadTurnoController::class, 'cancelar'])->name('turnos.cancelar');
+        Route::patch('turnos/{turno}/pagado',          [ActividadTurnoController::class, 'marcarPagado'])->name('turnos.pagado');
+    });
+
     // ── Cuotas mensuales y pagos ──────────────────────────────────────────────
     Route::middleware('rol:administracion,desarrollador')->group(function () {
         Route::get('cuotas',                              [CuotaMensualController::class, 'index'])->name('cuotas.index');
@@ -163,5 +188,9 @@ Route::middleware('auth')->group(function () {
         Route::get('usuarios/{usuario}/edit', [UsuarioController::class, 'edit'])->name('usuarios.edit');
         Route::put('usuarios/{usuario}',     [UsuarioController::class, 'update'])->name('usuarios.update');
         Route::delete('usuarios/{usuario}',  [UsuarioController::class, 'destroy'])->name('usuarios.destroy');
+
+        // Consola de comandos artisan
+        Route::get('artisan',  [ArtisanController::class, 'index'])->name('artisan.index');
+        Route::post('artisan', [ArtisanController::class, 'run'])->name('artisan.run');
     });
 });

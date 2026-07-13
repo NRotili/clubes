@@ -154,6 +154,32 @@
             </div>
 
             <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest px-3 mb-1.5">Instalaciones</p>
+                <ul class="space-y-0.5">
+                    <li>
+                        <a href="{{ route('actividades.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                                {{ request()->routeIs('actividades.index', 'actividades.create', 'actividades.show', 'actividades.edit', 'actividades.agenda') ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/>
+                            </svg>
+                            Actividades
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('actividades.turnos.pendientes') }}"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                                {{ request()->routeIs('actividades.turnos.pendientes') ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                            </svg>
+                            Solicitudes
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-widest px-3 mb-1.5">Comunicación</p>
                 <ul class="space-y-0.5">
                     <li>
@@ -252,10 +278,35 @@
                             Usuarios
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('artisan.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                                {{ request()->routeIs('artisan.*') ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5 3 11.25l3.75 3.75M17.25 7.5l3.75 3.75-3.75 3.75m-8.25 3-1.5 1.5m1.5-1.5H12m-1.5-13.5L9 18.75"/>
+                            </svg>
+                            Comandos Artisan
+                        </a>
+                    </li>
                     @endif
                 </ul>
             </div>
             @endif
+
+            <div>
+                <ul class="space-y-0.5">
+                    <li>
+                        <a href="{{ route('manual.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                                {{ request()->routeIs('manual.*') ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"/>
+                            </svg>
+                            Manual de uso
+                        </a>
+                    </li>
+                </ul>
+            </div>
 
         </nav>
 
@@ -343,9 +394,10 @@
                         $seccionAbierta = match(true) {
                             request()->routeIs('socios.*', 'escaner.*', 'asistencia.*') => 'socios',
                             request()->routeIs('disciplinas.*', 'profesores.*')          => 'actividades',
+                            request()->routeIs('actividades.*', 'turnos.*')              => 'instalaciones',
                             request()->routeIs('comunicaciones.*', 'noticias.*')         => 'comunicacion',
                             request()->routeIs('deudores.*', 'finanzas.*', 'cuotas.*', 'pagos.*') => 'finanzas',
-                            request()->routeIs('club.config*')                           => 'config',
+                            request()->routeIs('club.config*', 'usuarios.*', 'artisan.*') => 'config',
                             default => null,
                         };
                     @endphp
@@ -391,6 +443,22 @@
                             <a href="{{ route('disciplinas.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('disciplinas.index', 'disciplinas.create', 'disciplinas.show', 'disciplinas.edit') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Disciplinas</a>
                             <a href="{{ route('disciplinas.calendario') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('disciplinas.calendario') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Calendario</a>
                             <a href="{{ route('profesores.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('profesores.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Profesores</a>
+                        </div>
+                    </div>
+
+                    {{-- Instalaciones --}}
+                    @php [$arrow, $hidden] = mobileSection('instalaciones', '', $seccionAbierta === 'instalaciones') @endphp
+                    <div class="mobile-section">
+                        <button type="button" onclick="toggleSection('m-instalaciones')"
+                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-semibold text-slate-500 uppercase tracking-wide hover:bg-slate-50 transition-colors">
+                            Instalaciones
+                            <svg class="w-4 h-4 transition-transform {{ $arrow }}" id="m-instalaciones-arrow" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                            </svg>
+                        </button>
+                        <div id="m-instalaciones" class="flex flex-col gap-0.5 pl-2 {{ $hidden }}">
+                            <a href="{{ route('actividades.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('actividades.index', 'actividades.create', 'actividades.show', 'actividades.edit', 'actividades.agenda') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Actividades</a>
+                            <a href="{{ route('actividades.turnos.pendientes') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('actividades.turnos.pendientes') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Solicitudes</a>
                         </div>
                     </div>
 
@@ -442,11 +510,18 @@
                             <a href="{{ route('cuotas.config') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('cuotas.config*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Configurar cuotas</a>
                             @if(auth()->user()->esDesarrollador())
                                 <a href="{{ route('usuarios.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('usuarios.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Usuarios</a>
+                                <a href="{{ route('artisan.index') }}" class="px-3 py-2 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('artisan.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100' }}">Comandos Artisan</a>
                             @endif
                         </div>
                     </div>
 
                     @endif
+
+                    <a href="{{ route('manual.index') }}"
+                        class="px-3 py-2.5 rounded-md text-sm font-medium transition-colors
+                            {{ request()->routeIs('manual.*') ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-100' }}">
+                        Manual de uso
+                    </a>
 
                     <div class="mt-2 pt-2 border-t border-slate-100">
                         <form method="POST" action="{{ route('logout') }}">

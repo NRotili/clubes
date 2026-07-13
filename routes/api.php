@@ -22,4 +22,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('disciplinas/{disciplina}/inscribir', [SocioApiController::class, 'inscribirDisciplina']);
     Route::patch('disciplinas/{disciplina}/baja',     [SocioApiController::class, 'bajaDisciplina']);
     Route::get('ingresos',           [SocioApiController::class, 'ingresos']);
+
+    Route::get('actividades',                            [SocioApiController::class, 'actividades']);
+    Route::get('actividades/{actividad}/disponibilidad', [SocioApiController::class, 'disponibilidadActividad']);
+    Route::post('actividades/{actividad}/turnos',        [SocioApiController::class, 'reservarTurno']);
+    Route::get('mis-turnos',                             [SocioApiController::class, 'misTurnos']);
+    Route::patch('turnos/{turno}/cancelar',              [SocioApiController::class, 'cancelarTurno']);
 });

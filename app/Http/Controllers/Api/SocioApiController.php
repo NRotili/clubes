@@ -3,17 +3,22 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Actividad;
+use App\Models\ActividadTurno;
 use App\Models\AsistenciaDisciplina;
 use App\Models\ClubConfig;
 use App\Models\CuotaMensual;
 use App\Models\Disciplina;
 use App\Models\DisciplinaInscripcionLog;
 use App\Models\Noticia;
+use App\Services\ActividadDisponibilidadService;
+use App\Services\ActividadReservaService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class SocioApiController extends Controller
 {
@@ -324,6 +329,128 @@ class SocioApiController extends Controller
         $request->user()->update(['noticias_leidas_hasta' => now()]);
 
         return response()->json(['ok' => true]);
+    }
+
+    public function actividades(Request $request): JsonResponse
+    {
+        $socio = $request->user()->socio;
+        $disciplinasDelSocio = $socio
+            ? $socio->disciplinas()->pluck('disciplinas.id')
+            : collect();
+
+        $actividades = Actividad::where('estado', 'activa')
+            ->with('franjas', 'disciplinasRequeridas')
+            ->orderBy('nombre')
+            ->get()
+            ->map(function (Actividad $a) use ($disciplinasDelSocio) {
+                $requeridas = $a->disciplinasRequeridas;
+                $puedeSolicitar = $requeridas->isEmpty()
+                    || $requeridas->pluck('id')->intersect($disciplinasDelSocio)->isNotEmpty();
+
+                return [
+                    'id'                    => $a->id,
+                    'nombre'                => $a->nombre,
+                    'descripcion'           => $a->descripcion,
+                    'requiere_aprobacion'   => $a->requiere_aprobacion,
+                    'requiere_pago'         => $a->requiere_pago,
+                    'costo'                 => $a->costo !== null ? (float) $a->costo : null,
+                    'anticipacion_dias'     => $a->anticipacion_dias,
+                    'max_turnos_activos'    => $a->max_turnos_activos,
+                    'puede_solicitar'       => $puedeSolicitar,
+                    'disciplinas_requeridas'=> $requeridas->map(fn ($d) => [
+                        'id'     => $d->id,
+                        'nombre' => $d->nombre,
+                    ])->values(),
+                    'franjas'               => $a->franjas->map(fn ($f) => [
+                        'dia_semana'       => $f->dia_semana,
+                        'hora_inicio'      => substr($f->hora_inicio, 0, 5),
+                        'hora_fin'         => substr($f->hora_fin, 0, 5),
+                        'duracion_minutos' => $f->duracion_minutos,
+                        'cupo'             => $f->cupo,
+                    ])->values(),
+                ];
+            });
+
+        return response()->json(['actividades' => $actividades]);
+    }
+
+    public function disponibilidadActividad(Request $request, Actividad $actividad): JsonResponse
+    {
+        $request->validate(['fecha' => 'required|date']);
+
+        $slots = ActividadDisponibilidadService::slots($actividad, Carbon::parse($request->fecha));
+
+        return response()->json(['slots' => $slots]);
+    }
+
+    public function reservarTurno(Request $request, Actividad $actividad): JsonResponse
+    {
+        $request->validate([
+            'fecha'         => 'required|date',
+            'hora_inicio'   => 'required',
+            'observaciones' => 'nullable|string|max:500',
+        ]);
+
+        $socio = $request->user()->socio;
+
+        try {
+            $turno = ActividadReservaService::reservar(
+                $actividad,
+                $socio,
+                $request->fecha,
+                $request->hora_inicio,
+                observaciones: $request->observaciones,
+            );
+        } catch (ValidationException $e) {
+            return response()->json(['message' => collect($e->errors())->flatten()->first()], 422);
+        }
+
+        return response()->json(['turno' => $this->formatTurno($turno->load('actividad'))], 201);
+    }
+
+    public function misTurnos(Request $request): JsonResponse
+    {
+        $socio = $request->user()->socio;
+
+        $turnos = $socio->turnos()
+            ->with('actividad')
+            ->get()
+            ->map(fn (ActividadTurno $t) => $this->formatTurno($t));
+
+        return response()->json(['turnos' => $turnos]);
+    }
+
+    public function cancelarTurno(Request $request, ActividadTurno $turno): JsonResponse
+    {
+        if ($turno->socio_id !== $request->user()->socio->id) {
+            abort(403);
+        }
+
+        if (!$turno->puedeCancelar()) {
+            return response()->json(['message' => 'Este turno no se puede cancelar.'], 422);
+        }
+
+        $turno->update(['estado' => 'cancelado']);
+
+        return response()->json(['ok' => true]);
+    }
+
+    private function formatTurno(ActividadTurno $turno): array
+    {
+        return [
+            'id'             => $turno->id,
+            'actividad_id'   => $turno->actividad_id,
+            'actividad'      => $turno->actividad->nombre,
+            'fecha'          => $turno->fecha->format('Y-m-d'),
+            'hora_inicio'    => substr($turno->hora_inicio, 0, 5),
+            'hora_fin'       => substr($turno->hora_fin, 0, 5),
+            'estado'         => $turno->estado,
+            'estado_label'   => ActividadTurno::etiquetaEstado($turno->estado),
+            'monto'          => $turno->monto !== null ? (float) $turno->monto : null,
+            'pagado'         => $turno->pagado,
+            'observaciones'  => $turno->observaciones,
+            'puede_cancelar' => $turno->puedeCancelar(),
+        ];
     }
 
     public function ingresos(Request $request): JsonResponse
