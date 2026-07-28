@@ -213,4 +213,77 @@ class SocioImportTest extends TestCase
         $this->assertSame(0, Socio::count());
         $this->assertStringContainsString('omitidos', session('success'));
     }
+
+    public function test_numero_socio_provisto_se_usa_y_si_falta_se_autogenera(): void
+    {
+        $user = $this->crearUsuario('administracion');
+
+        $csv = "Legajo,Apellido,Nombre,DNI,Fecha Nacimiento,Genero,Categoria,Estado\n"
+             ."00099,Gomez,Ana,30111222,15/03/1990,F,adulto,activo\n"
+             .",Perez,Juan,40555666,20/05/1985,M,junior,activo\n";
+
+        $archivo = UploadedFile::fake()->createWithContent('socios.csv', $csv);
+
+        $preview = $this->actingAs($user)
+            ->post(route('socios.importar.preview'), ['archivo' => $archivo]);
+        $path = $preview->viewData('archivo');
+
+        $mapping = array_merge($this->mapeoCompleto(), ['legajo' => 'numero_socio']);
+
+        $store = $this->actingAs($user)->post(route('socios.importar.store'), [
+            'archivo' => $path,
+            'mapping' => $mapping,
+        ]);
+
+        $store->assertRedirect(route('socios.index'));
+
+        $this->assertDatabaseHas('socios', [
+            'numero_documento' => '30111222',
+            'numero_socio' => '00099',
+        ]);
+
+        $sinNumero = Socio::where('numero_documento', '40555666')->first();
+        $this->assertNotNull($sinNumero);
+        $this->assertNotSame('00099', $sinNumero->numero_socio);
+        $this->assertNotSame('', $sinNumero->numero_socio);
+    }
+
+    public function test_numero_socio_duplicado_se_omite(): void
+    {
+        $user = $this->crearUsuario('administracion');
+
+        Socio::create([
+            'numero_socio' => '00050',
+            'qr_uuid' => Socio::generarQrUuid(),
+            'apellido' => 'Existente',
+            'nombre' => 'Socio',
+            'tipo_documento' => 'DNI',
+            'numero_documento' => '11111111',
+            'fecha_nacimiento' => '1980-01-01',
+            'genero' => 'M',
+            'categoria' => 'adulto',
+            'estado' => 'activo',
+            'fecha_alta' => now(),
+        ]);
+
+        $csv = "Legajo,Apellido,Nombre,DNI,Fecha Nacimiento,Genero,Categoria,Estado\n"
+             ."00050,Gomez,Ana,30111222,15/03/1990,F,adulto,activo\n";
+
+        $archivo = UploadedFile::fake()->createWithContent('socios.csv', $csv);
+
+        $preview = $this->actingAs($user)
+            ->post(route('socios.importar.preview'), ['archivo' => $archivo]);
+        $path = $preview->viewData('archivo');
+
+        $mapping = array_merge($this->mapeoCompleto(), ['legajo' => 'numero_socio']);
+
+        $store = $this->actingAs($user)->post(route('socios.importar.store'), [
+            'archivo' => $path,
+            'mapping' => $mapping,
+        ]);
+
+        $store->assertRedirect(route('socios.index'));
+        $this->assertSame(1, Socio::count());
+        $this->assertStringContainsString('ya está en uso', session('success'));
+    }
 }

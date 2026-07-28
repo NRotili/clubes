@@ -23,6 +23,7 @@ class SocioImportService
     {
         return [
             '' => '— No importar —',
+            'numero_socio' => 'Número de socio (opcional, se autogenera si se deja vacío)',
             'apellido' => 'Apellido',
             'nombre' => 'Nombre',
             'tipo_documento' => 'Tipo de documento',
@@ -99,6 +100,14 @@ class SocioImportService
     }
 
     private array $autoDetect = [
+        'numerosocio' => 'numero_socio',
+        'nrosocio' => 'numero_socio',
+        'nsocio' => 'numero_socio',
+        'nrodesocio' => 'numero_socio',
+        'numerodesocio' => 'numero_socio',
+        'codigosocio' => 'numero_socio',
+        'idsocio' => 'numero_socio',
+        'legajo' => 'numero_socio',
         'apellido' => 'apellido',
         'apellidos' => 'apellido',
         'nombre' => 'nombre',
@@ -199,6 +208,7 @@ class SocioImportService
         $errores = [];
 
         $idsPorDocumento = Socio::pluck('id', 'numero_documento')->all();
+        $idsPorNumeroSocio = Socio::pluck('id', 'numero_socio')->all();
 
         $highestRow = $sheet->getHighestDataRow();
 
@@ -213,8 +223,12 @@ class SocioImportService
             }
 
             $numeroDocumento = preg_replace('/[.\s]+/', '', $valores['numero_documento'] ?? '');
+            $numeroSocio = trim($valores['numero_socio'] ?? '');
 
             $faltantes = [];
+            if ($numeroSocio !== '' && mb_strlen($numeroSocio) > 10) {
+                $faltantes[] = 'número de socio inválido (máximo 10 caracteres)';
+            }
             if (($valores['nombre'] ?? '') === '') {
                 $faltantes[] = 'nombre';
             }
@@ -274,15 +288,30 @@ class SocioImportService
 
             $socioId = $idsPorDocumento[$numeroDocumento] ?? null;
 
+            $idConMismoNumeroSocio = $numeroSocio !== '' ? ($idsPorNumeroSocio[$numeroSocio] ?? null) : null;
+            if ($idConMismoNumeroSocio !== null && $idConMismoNumeroSocio !== $socioId) {
+                $omitidos++;
+                $errores[] = "Fila {$fila}: el número de socio \"{$numeroSocio}\" ya está en uso por otro socio.";
+
+                continue;
+            }
+
             if ($socioId) {
+                if ($numeroSocio !== '') {
+                    $data['numero_socio'] = $numeroSocio;
+                }
                 Socio::whereKey($socioId)->update($data);
+                if ($numeroSocio !== '') {
+                    $idsPorNumeroSocio[$numeroSocio] = $socioId;
+                }
                 $actualizados++;
             } else {
-                $nuevo = Socio::create(array_merge($data, [
-                    'numero_socio' => Socio::generarNumeroSocio(),
-                    'qr_uuid' => Socio::generarQrUuid(),
-                ]));
+                $data['numero_socio'] = $numeroSocio !== '' ? $numeroSocio : Socio::generarNumeroSocio();
+                $data['qr_uuid'] = Socio::generarQrUuid();
+
+                $nuevo = Socio::create($data);
                 $idsPorDocumento[$numeroDocumento] = $nuevo->id;
+                $idsPorNumeroSocio[$nuevo->numero_socio] = $nuevo->id;
                 $creados++;
             }
         }
