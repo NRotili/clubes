@@ -13,7 +13,7 @@ services:
     volumes:
       - storage_uploads:/var/www/html/storage/app/public
     networks:
-      - magiasabor_internal
+      - villarugbyclub_internal
       - general_network
     depends_on:
       mysql:
@@ -35,7 +35,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - magiasabor_internal
+      - villarugbyclub_internal
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -57,13 +57,13 @@ services:
     volumes:
       - storage_uploads:/var/www/html/storage/app/public
     networks:
-      - magiasabor_internal
+      - villarugbyclub_internal
     depends_on:
       app:
         condition: service_healthy
 
 networks:
-  magiasabor_internal:
+  villarugbyclub_internal:
     driver: bridge
   general_network:
     external: true
