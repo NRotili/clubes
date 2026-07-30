@@ -34,7 +34,7 @@ class LoginController extends Controller
         if ($user->rol === 'socio') {
             if ($user->socio_id) {
                 $request->session()->forget('url.intended');
-                return redirect()->route('socios.show', $user->socio_id);
+                return redirect()->route('socios.show', $user->socio);
             }
 
             Auth::logout();

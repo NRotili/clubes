@@ -18,7 +18,7 @@ class CheckRol
             }
 
             if ($user && $user->rol === 'socio' && $user->socio_id) {
-                return redirect()->route('socios.show', $user->socio_id)
+                return redirect()->route('socios.show', $user->socio)
                     ->with('error', 'No tenés permiso para acceder a esa sección.');
             }
 

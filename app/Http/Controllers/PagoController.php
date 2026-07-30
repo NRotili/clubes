@@ -175,7 +175,7 @@ class PagoController extends Controller
             );
         }
 
-        return redirect()->route('socios.show', $request->titular_id)
+        return redirect()->route('socios.show', $titular)
             ->with('success', "Se registraron {$cuotas->count()} pagos del grupo familiar correctamente.");
     }
 

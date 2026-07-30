@@ -10,7 +10,7 @@
         <p class="text-sm text-slate-500 mt-1">Tomá lista o consultá la planilla de asistencia de cada disciplina.</p>
     </div>
     @if(auth()->user()->socio_id)
-        <a href="{{ route('socios.show', auth()->user()->socio_id) }}"
+        <a href="{{ route('socios.show', auth()->user()->socio) }}"
             class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm shrink-0">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
