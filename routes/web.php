@@ -14,6 +14,7 @@ use App\Http\Controllers\DeudoresController;
 use App\Http\Controllers\DisciplinaController;
 use App\Http\Controllers\EscanerController;
 use App\Http\Controllers\FinanzasController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ManualController;
 use App\Http\Controllers\MisClasesController;
@@ -22,11 +23,17 @@ use App\Http\Controllers\PagoController;
 use App\Http\Controllers\ProfesorController;
 use App\Http\Controllers\SocioController;
 use App\Http\Controllers\SocioImportController;
+use App\Http\Controllers\SolicitudEliminacionController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
 // ─── QR: verificación de acceso (pública, sin login) ─────────────────────────
 Route::get('verificar/{uuid}', [SocioController::class, 'verificar'])->name('socios.verificar');
+
+// ─── Legal (pública, sin login) ────────────────────────────────────────────────
+Route::get('privacidad', [LegalController::class, 'privacidad'])->name('legal.privacidad');
+Route::get('eliminar-cuenta', [SolicitudEliminacionController::class, 'create'])->name('cuenta.eliminar');
+Route::post('eliminar-cuenta', [SolicitudEliminacionController::class, 'store'])->name('cuenta.eliminar.store');
 
 // ─── Autenticación ────────────────────────────────────────────────────────────
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
@@ -40,7 +47,7 @@ Route::get('/', function () {
     }
     $user = auth()->user();
     if ($user->esSocio() && $user->socio_id) {
-        return redirect()->route('socios.show', $user->socio_id);
+        return redirect()->route('socios.show', $user->socio);
     }
 
     return redirect()->route('dashboard');
@@ -147,6 +154,7 @@ Route::middleware('auth')->group(function () {
         Route::post('cuotas/generar', [CuotaMensualController::class, 'generar'])->name('cuotas.generar');
         Route::get('cuotas/{cuota}', [CuotaMensualController::class, 'show'])->name('cuotas.show');
         Route::patch('cuotas/{cuota}/ajustar-clases', [CuotaMensualController::class, 'ajustarClases'])->name('cuotas.ajustar-clases');
+        Route::post('cuotas/{cuota}/recalcular', [CuotaMensualController::class, 'recalcular'])->name('cuotas.recalcular');
 
         Route::get('pagos/create', [PagoController::class, 'create'])->name('pagos.create');
         Route::post('pagos', [PagoController::class, 'store'])->name('pagos.store');
@@ -169,6 +177,9 @@ Route::middleware('auth')->group(function () {
         Route::post('configuracion/cuotas', [CuotaConfigController::class, 'update'])->name('cuotas.config.update');
         Route::get('configuracion/club', [ClubConfigController::class, 'index'])->name('club.config');
         Route::post('configuracion/club', [ClubConfigController::class, 'update'])->name('club.config.update');
+
+        Route::get('solicitudes-eliminacion', [SolicitudEliminacionController::class, 'index'])->name('solicitudes-eliminacion.index');
+        Route::patch('solicitudes-eliminacion/{solicitud}/procesar', [SolicitudEliminacionController::class, 'procesar'])->name('solicitudes-eliminacion.procesar');
     });
 
     // ── Asistencia por disciplina (admin + profesor) ──────────────────────────
@@ -178,10 +189,8 @@ Route::middleware('auth')->group(function () {
         Route::post('disciplinas/{disciplina}/asistencia', [AsistenciaDisciplinaController::class, 'store'])->name('disciplinas.asistencia.store');
     });
 
-    // ── Profesor: mis clases ──────────────────────────────────────────────────
-    Route::middleware('rol:profesor')->group(function () {
-        Route::get('mis-clases', [MisClasesController::class, 'index'])->name('profesor.mis-clases');
-    });
+    // ── Profesor: mis clases (accesible a cualquier usuario con profesor vinculado) ──
+    Route::get('mis-clases', [MisClasesController::class, 'index'])->name('profesor.mis-clases');
 
     // ── Solo desarrollador ────────────────────────────────────────────────────
     Route::middleware('rol:desarrollador')->group(function () {

@@ -90,6 +90,7 @@
 
         <p class="text-center text-xs text-slate-400 mt-6">
             {{ config('app.name', 'Club') }} &mdash; Sistema de Gestión
+            &middot; <a href="{{ route('legal.privacidad') }}" class="hover:text-slate-600 hover:underline">Política de Privacidad</a>
         </p>
     </div>
 
