@@ -25,7 +25,7 @@ class AuthController extends Controller
 
         $user = Auth::user();
 
-        if (!$user->esSocio() || !$user->socio_id) {
+        if (!$user->socio_id) {
             Auth::logout();
             return response()->json(['message' => 'Esta cuenta no corresponde a un socio.'], 403);
         }

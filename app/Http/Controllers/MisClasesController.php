@@ -11,8 +11,11 @@ class MisClasesController extends Controller
 {
     public function index(Request $request): View
     {
-        $profesor     = auth()->user()->profesor;
-        $disciplinas  = $profesor->disciplinas()->where('estado', 'activa')->with('horarios')->orderBy('nombre')->get();
+        $profesor = auth()->user()->profesor;
+
+        abort_if(!$profesor, 403, 'No tenés un perfil de profesor vinculado.');
+
+        $disciplinas = $profesor->disciplinas()->where('estado', 'activa')->with('horarios')->orderBy('nombre')->get();
 
         $inicioMes = Carbon::now()->startOfMonth();
         $finMes    = Carbon::now()->endOfMonth();

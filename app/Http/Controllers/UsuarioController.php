@@ -39,14 +39,9 @@ class UsuarioController extends Controller
             'profesor_id' => 'nullable|exists:profesores,id|unique:users,profesor_id',
         ]);
 
-        if ($data['rol'] !== 'socio' && $data['rol'] !== 'profesor') {
-            $data['socio_id'] = null;
-        }
-        if ($data['rol'] !== 'profesor') {
-            $data['profesor_id'] = null;
-        }
-
-        $data['password'] = Hash::make($data['password']);
+        $data['socio_id']    = $data['socio_id'] ?: null;
+        $data['profesor_id'] = $data['profesor_id'] ?: null;
+        $data['password']    = Hash::make($data['password']);
 
         $usuario = User::create($data);
 
@@ -84,12 +79,8 @@ class UsuarioController extends Controller
             'profesor_id' => ['nullable', 'exists:profesores,id', Rule::unique('users', 'profesor_id')->ignore($usuario->id)],
         ]);
 
-        if ($data['rol'] !== 'socio' && $data['rol'] !== 'profesor') {
-            $data['socio_id'] = null;
-        }
-        if ($data['rol'] !== 'profesor') {
-            $data['profesor_id'] = null;
-        }
+        $data['socio_id']    = $data['socio_id'] ?: null;
+        $data['profesor_id'] = $data['profesor_id'] ?: null;
 
         if (empty($data['password'])) {
             unset($data['password']);
