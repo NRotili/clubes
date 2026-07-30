@@ -31,10 +31,11 @@ class PushNotificationService
         ], $tokens);
 
         try {
-            Http::withHeaders([
+            $response = Http::withHeaders([
                 'Accept'       => 'application/json',
                 'Content-Type' => 'application/json',
             ])->post(self::ENDPOINT, $messages);
+            Log::info('ExpoPush batch response (' . count($messages) . ' mensajes): ' . $response->body());
         } catch (\Throwable $e) {
             Log::warning('ExpoPush batch error: ' . $e->getMessage());
         }
