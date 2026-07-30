@@ -54,8 +54,7 @@ class SocioController extends Controller
     {
         $data = $request->validate($this->reglas());
 
-        $data['numero_socio'] = Socio::generarNumeroSocio();
-        $data['qr_uuid']      = Socio::generarQrUuid();
+        $data['qr_uuid'] = Socio::generarQrUuid();
 
         if (empty($data['socio_titular_id'])) {
             $data['socio_titular_id'] = null;
@@ -66,7 +65,17 @@ class SocioController extends Controller
             $data['foto'] = $request->file('foto')->store('socios/fotos', 'public');
         }
 
-        $socio = Socio::create($data);
+        for ($intento = 0; ; $intento++) {
+            $data['numero_socio'] = Socio::generarNumeroSocio();
+            try {
+                $socio = Socio::create($data);
+                break;
+            } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+                if ($intento >= 4 || !str_contains($e->getMessage(), 'numero_socio')) {
+                    throw $e;
+                }
+            }
+        }
 
         return redirect()->route('socios.show', $socio)
             ->with('success', "Socio N° {$socio->numero_socio} — {$socio->nombreCompleto()} registrado exitosamente.");
