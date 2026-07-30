@@ -72,6 +72,24 @@ class CuotaMensual extends Model
         $this->save();
     }
 
+    /**
+     * Vuelve a armar los ítems de esta cuota (ya generada) según el estado
+     * actual de becas, costos y cuota base del socio. Pensado para cuotas
+     * pendientes/parciales cuya beca o costo cambió después de generarse.
+     * Descarta cualquier ajuste manual de cantidad de clases previamente
+     * guardado en items de tipo "por_clase".
+     */
+    public function recalcular(): void
+    {
+        ['items' => $items, 'total' => $total] = static::construirItems($this->socio, $this->periodo);
+
+        $this->items       = $items;
+        $this->monto_total = $total;
+        $this->save();
+
+        $this->recalcularEstado();
+    }
+
     public function periodoFormateado(): string
     {
         [$anio, $mes] = explode('-', $this->periodo);
@@ -124,58 +142,7 @@ class CuotaMensual extends Model
                 continue;
             }
 
-            $items = [];
-            $total = 0;
-
-            // Cuota base (solo si el socio la abona)
-            if ($socio->paga_cuota_base) {
-                $cuotaBase = CuotaConfig::montoParaSocio($socio);
-                if ($cuotaBase > 0) {
-                    $items[] = [
-                        'descripcion' => 'Cuota base — ' . Socio::etiquetaCategoria($socio->categoria) . ' / ' . Socio::etiquetaGenero($socio->genero),
-                        'monto'       => $cuotaBase,
-                    ];
-                    $total += $cuotaBase;
-                }
-            }
-
-            // Disciplinas activas
-            foreach ($socio->disciplinas as $d) {
-                if ($d->pivot->beca) {
-                    $items[] = [
-                        'descripcion' => $d->nombre . ' (beca)',
-                        'monto'       => 0,
-                        'beca'        => true,
-                    ];
-                    continue;
-                }
-
-                if ($d->tipo_costo === 'por_clase') {
-                    $clases     = DisciplinaHorario::clasesEnPeriodo($d->id, $periodo);
-                    $costoClase = (float) $d->costo;
-                    $monto      = round($costoClase * $clases, 2);
-                    $items[] = [
-                        'descripcion'        => $d->nombre . ' · ' . $clases . ' ' . ($clases === 1 ? 'clase' : 'clases') . ' × $' . number_format($costoClase, 2, ',', '.'),
-                        'monto'              => $monto,
-                        'tipo'               => 'por_clase',
-                        'costo_clase'        => $costoClase,
-                        'clases'             => $clases,
-                        'clases_programadas' => $clases,
-                        'disciplina_id'      => $d->id,
-                    ];
-                } else {
-                    $monto = match ($d->tipo_costo) {
-                        'mensual' => (float) $d->costo,
-                        'anual'   => round((float) $d->costo / 12, 2),
-                        default   => (float) $d->costo,
-                    };
-                    $items[] = [
-                        'descripcion' => $d->nombre . ($d->tipo_costo === 'anual' ? ' (anual ÷12)' : ''),
-                        'monto'       => $monto,
-                    ];
-                }
-                $total += $monto;
-            }
+            ['items' => $items, 'total' => $total] = static::construirItems($socio, $periodo);
 
             if (empty($items)) {
                 $omitidas++;
@@ -195,5 +162,74 @@ class CuotaMensual extends Model
         }
 
         return compact('creadas', 'omitidas');
+    }
+
+    /**
+     * Arma los ítems (cuota base + disciplinas) de un socio para un período,
+     * según el estado actual de becas y costos. Usado tanto para generar
+     * cuotas nuevas como para recalcular una ya existente.
+     *
+     * @return array{items: array<int, array<string, mixed>>, total: float}
+     */
+    private static function construirItems(Socio $socio, string $periodo): array
+    {
+        $items = [];
+        $total = 0;
+
+        // Cuota base (solo si el socio la abona)
+        if ($socio->paga_cuota_base) {
+            $cuotaBase = CuotaConfig::montoParaSocio($socio);
+            if ($cuotaBase > 0) {
+                $items[] = [
+                    'descripcion' => 'Cuota base — ' . Socio::etiquetaCategoria($socio->categoria) . ' / ' . Socio::etiquetaGenero($socio->genero),
+                    'monto'       => $cuotaBase,
+                ];
+                $total += $cuotaBase;
+            }
+        }
+
+        // Disciplinas activas
+        $disciplinas = $socio->relationLoaded('disciplinas')
+            ? $socio->disciplinas
+            : $socio->disciplinas()->wherePivot('estado', 'activa')->get();
+
+        foreach ($disciplinas as $d) {
+            if ($d->pivot->beca) {
+                $items[] = [
+                    'descripcion' => $d->nombre . ' (beca)',
+                    'monto'       => 0,
+                    'beca'        => true,
+                ];
+                continue;
+            }
+
+            if ($d->tipo_costo === 'por_clase') {
+                $clases     = DisciplinaHorario::clasesEnPeriodo($d->id, $periodo);
+                $costoClase = (float) $d->costo;
+                $monto      = round($costoClase * $clases, 2);
+                $items[] = [
+                    'descripcion'        => $d->nombre . ' · ' . $clases . ' ' . ($clases === 1 ? 'clase' : 'clases') . ' × $' . number_format($costoClase, 2, ',', '.'),
+                    'monto'              => $monto,
+                    'tipo'               => 'por_clase',
+                    'costo_clase'        => $costoClase,
+                    'clases'             => $clases,
+                    'clases_programadas' => $clases,
+                    'disciplina_id'      => $d->id,
+                ];
+            } else {
+                $monto = match ($d->tipo_costo) {
+                    'mensual' => (float) $d->costo,
+                    'anual'   => round((float) $d->costo / 12, 2),
+                    default   => (float) $d->costo,
+                };
+                $items[] = [
+                    'descripcion' => $d->nombre . ($d->tipo_costo === 'anual' ? ' (anual ÷12)' : ''),
+                    'monto'       => $monto,
+                ];
+            }
+            $total += $monto;
+        }
+
+        return ['items' => $items, 'total' => $total];
     }
 }

@@ -29,13 +29,26 @@
         </div>
 
         @if($cuota->estado !== 'pagado')
-            <a href="{{ route('pagos.create', ['cuota_id' => $cuota->id]) }}"
-                class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors shadow-sm shrink-0">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-                </svg>
-                Registrar pago
-            </a>
+            <div class="flex items-center gap-2 shrink-0">
+                <form method="POST" action="{{ route('cuotas.recalcular', $cuota) }}"
+                    onsubmit="return confirm('¿Recalcular esta cuota según el estado actual de becas y costos? Si ajustaste manualmente la cantidad de clases de algún ítem, ese ajuste se pierde.')">
+                    @csrf
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium px-4 py-2.5 rounded-lg border border-slate-300 transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                        </svg>
+                        Recalcular
+                    </button>
+                </form>
+                <a href="{{ route('pagos.create', ['cuota_id' => $cuota->id]) }}"
+                    class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors shadow-sm">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                    </svg>
+                    Registrar pago
+                </a>
+            </div>
         @endif
     </div>
 </div>

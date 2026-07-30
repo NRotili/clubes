@@ -77,6 +77,15 @@ class CuotaMensualController extends Controller
         return view('cuotas.show', compact('cuota'));
     }
 
+    public function recalcular(CuotaMensual $cuota): RedirectResponse
+    {
+        abort_if($cuota->estado === 'pagado', 422, 'No se puede recalcular una cuota ya pagada.');
+
+        $cuota->recalcular();
+
+        return back()->with('success', 'La cuota fue recalculada según el estado actual de becas y costos.');
+    }
+
     public function ajustarClases(Request $request, CuotaMensual $cuota): RedirectResponse
     {
         $request->validate([

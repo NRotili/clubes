@@ -133,12 +133,25 @@
 
                 <div id="items-container" class="divide-y divide-slate-100">
                     @php
+                        $itemsExcluidos = 0;
                         $itemsIniciales = old('items');
                         if (!$itemsIniciales && $cuota) {
-                            $itemsIniciales = $cuota->items;
+                            $itemsIniciales = collect($cuota->items)
+                                ->reject(fn($item) => ($item['beca'] ?? false) || (float) ($item['monto'] ?? 0) <= 0)
+                                ->values()
+                                ->all();
+                            $itemsExcluidos = count($cuota->items) - count($itemsIniciales);
                         }
-                        $itemsIniciales ??= [['descripcion' => '', 'monto' => '']];
+                        if (empty($itemsIniciales)) {
+                            $itemsIniciales = [['descripcion' => '', 'monto' => '']];
+                        }
                     @endphp
+
+                    @if($itemsExcluidos > 0)
+                        <div class="px-4 pt-4 text-xs text-slate-500">
+                            Se {{ $itemsExcluidos === 1 ? 'excluyó 1 ítem becado' : "excluyeron {$itemsExcluidos} ítems becados" }} ($0) de este pago.
+                        </div>
+                    @endif
 
                     @foreach($itemsIniciales as $i => $item)
                         <div class="item-fila flex items-center gap-3 p-4">
