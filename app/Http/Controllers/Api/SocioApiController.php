@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class SocioApiController extends Controller
@@ -101,6 +102,40 @@ class SocioApiController extends Controller
         $request->user()->socio->update($validated);
 
         return response()->json(['message' => 'Datos actualizados correctamente.']);
+    }
+
+    public function actualizarFoto(Request $request): JsonResponse
+    {
+        $request->validate([
+            'foto' => 'required|image|mimes:jpg,jpeg,png,webp|max:3072',
+        ]);
+
+        $socio = $request->user()->socio;
+
+        if ($socio->foto) {
+            Storage::disk('public')->delete($socio->foto);
+        }
+
+        $socio->update([
+            'foto' => $request->file('foto')->store('socios/fotos', 'public'),
+        ]);
+
+        return response()->json([
+            'message'  => 'Foto actualizada correctamente.',
+            'foto_url' => $socio->fotoUrl(),
+        ]);
+    }
+
+    public function eliminarFoto(Request $request): JsonResponse
+    {
+        $socio = $request->user()->socio;
+
+        if ($socio->foto) {
+            Storage::disk('public')->delete($socio->foto);
+            $socio->update(['foto' => null]);
+        }
+
+        return response()->json(['message' => 'Foto eliminada correctamente.']);
     }
 
     public function changePassword(Request $request): JsonResponse

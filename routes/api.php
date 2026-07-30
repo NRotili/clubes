@@ -12,6 +12,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('logout',            [AuthController::class, 'logout']);
     Route::get('me',                 [SocioApiController::class, 'me']);
     Route::patch('me',               [SocioApiController::class, 'update']);
+    Route::post('me/foto',           [SocioApiController::class, 'actualizarFoto']);
+    Route::delete('me/foto',         [SocioApiController::class, 'eliminarFoto']);
     Route::post('me/password',       [SocioApiController::class, 'changePassword']);
     Route::post('me/push-token',     [SocioApiController::class, 'savePushToken']);
     Route::get('cuotas',             [SocioApiController::class, 'cuotas']);
