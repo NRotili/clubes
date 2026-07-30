@@ -74,6 +74,7 @@ class SocioController extends Controller
                 if ($intento >= 4 || !str_contains($e->getMessage(), 'numero_socio')) {
                     throw $e;
                 }
+                \Illuminate\Support\Facades\Log::error("Colisión de numero_socio '{$data['numero_socio']}' al dar de alta un socio, reintentando (intento {$intento}).");
             }
         }
 
