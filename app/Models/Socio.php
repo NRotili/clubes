@@ -128,8 +128,13 @@ class Socio extends Model
 
     public static function generarNumeroSocio(): string
     {
-        $ultimo = static::withTrashed()->max('numero_socio');
-        $siguiente = $ultimo ? (intval($ultimo) + 1) : 1;
+        // MAX('numero_socio') compara como texto: valores sin padding (ej. "662") pueden
+        // quedar por delante de valores con padding (ej. "00663") en orden alfabético.
+        // Casteamos a entero para que el máximo sea numérico, no lexicográfico.
+        $ultimo = static::withTrashed()
+            ->selectRaw('MAX(CAST(numero_socio AS UNSIGNED)) as maximo')
+            ->value('maximo');
+        $siguiente = $ultimo ? ((int) $ultimo + 1) : 1;
         return str_pad($siguiente, 5, '0', STR_PAD_LEFT);
     }
 
