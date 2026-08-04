@@ -22,7 +22,7 @@ class UsuarioController extends Controller
 
     public function create(): View
     {
-        $socios    = Socio::whereDoesntHave('usuario')->orderBy('apellido')->orderBy('nombre')->get();
+        $socios = Socio::where('estado', 'activo')->whereDoesntHave('usuario')->orderBy('apellido')->orderBy('nombre')->get();
         $profesores = Profesor::whereDoesntHave('usuario')->orderBy('apellido')->orderBy('nombre')->get();
 
         return view('usuarios.create', compact('socios', 'profesores'));
@@ -31,17 +31,17 @@ class UsuarioController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'name'        => 'required|string|max:100',
-            'email'       => 'required|email|max:150|unique:users',
-            'password'    => 'required|string|min:8|confirmed',
-            'rol'         => 'required|in:desarrollador,administracion,socio,profesor',
-            'socio_id'    => 'nullable|exists:socios,id|unique:users,socio_id',
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:150|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'rol' => 'required|in:desarrollador,administracion,socio,profesor',
+            'socio_id' => 'nullable|exists:socios,id|unique:users,socio_id',
             'profesor_id' => 'nullable|exists:profesores,id|unique:users,profesor_id',
         ]);
 
-        $data['socio_id']    = $data['socio_id'] ?: null;
+        $data['socio_id'] = $data['socio_id'] ?: null;
         $data['profesor_id'] = $data['profesor_id'] ?: null;
-        $data['password']    = Hash::make($data['password']);
+        $data['password'] = Hash::make($data['password']);
 
         $usuario = User::create($data);
 
@@ -52,7 +52,7 @@ class UsuarioController extends Controller
     public function edit(User $usuario): View
     {
         $socios = Socio::where(function ($q) use ($usuario) {
-            $q->whereDoesntHave('usuario');
+            $q->where('estado', 'activo')->whereDoesntHave('usuario');
             if ($usuario->socio_id) {
                 $q->orWhere('id', $usuario->socio_id);
             }
@@ -71,15 +71,15 @@ class UsuarioController extends Controller
     public function update(Request $request, User $usuario): RedirectResponse
     {
         $data = $request->validate([
-            'name'        => 'required|string|max:100',
-            'email'       => ['required', 'email', 'max:150', Rule::unique('users')->ignore($usuario->id)],
-            'password'    => 'nullable|string|min:8|confirmed',
-            'rol'         => 'required|in:desarrollador,administracion,socio,profesor',
-            'socio_id'    => ['nullable', 'exists:socios,id', Rule::unique('users', 'socio_id')->ignore($usuario->id)],
+            'name' => 'required|string|max:100',
+            'email' => ['required', 'email', 'max:150', Rule::unique('users')->ignore($usuario->id)],
+            'password' => 'nullable|string|min:8|confirmed',
+            'rol' => 'required|in:desarrollador,administracion,socio,profesor',
+            'socio_id' => ['nullable', 'exists:socios,id', Rule::unique('users', 'socio_id')->ignore($usuario->id)],
             'profesor_id' => ['nullable', 'exists:profesores,id', Rule::unique('users', 'profesor_id')->ignore($usuario->id)],
         ]);
 
-        $data['socio_id']    = $data['socio_id'] ?: null;
+        $data['socio_id'] = $data['socio_id'] ?: null;
         $data['profesor_id'] = $data['profesor_id'] ?: null;
 
         if (empty($data['password'])) {

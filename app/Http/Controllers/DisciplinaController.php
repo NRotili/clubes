@@ -27,9 +27,9 @@ class DisciplinaController extends Controller
         foreach ($disciplinas as $d) {
             foreach ($d->horarios as $h) {
                 [$hh, $mm] = explode(':', $h->hora_inicio);
-                $minMin = min($minMin, (int)$hh * 60);
+                $minMin = min($minMin, (int) $hh * 60);
                 [$hh, $mm] = explode(':', $h->hora_fin);
-                $maxMin = max($maxMin, ((int)$hh + ($mm > 0 ? 1 : 0)) * 60);
+                $maxMin = max($maxMin, ((int) $hh + ($mm > 0 ? 1 : 0)) * 60);
             }
         }
 
@@ -50,19 +50,19 @@ class DisciplinaController extends Controller
             foreach ($disciplinas as $d) {
                 foreach ($d->horarios->where('dia_semana', $dia) as $h) {
                     [$hh, $mm] = explode(':', $h->hora_inicio);
-                    $inicioMin = (int)$hh * 60 + (int)$mm;
+                    $inicioMin = (int) $hh * 60 + (int) $mm;
                     [$hh, $mm] = explode(':', $h->hora_fin);
-                    $finMin = (int)$hh * 60 + (int)$mm;
+                    $finMin = (int) $hh * 60 + (int) $mm;
                     $eventos[] = [
-                        'disciplina'  => $d,
-                        'inicio_min'  => $inicioMin,
-                        'fin_min'     => $finMin,
+                        'disciplina' => $d,
+                        'inicio_min' => $inicioMin,
+                        'fin_min' => $finMin,
                         'hora_inicio' => substr($h->hora_inicio, 0, 5),
-                        'hora_fin'    => substr($h->hora_fin, 0, 5),
+                        'hora_fin' => substr($h->hora_fin, 0, 5),
                     ];
                 }
             }
-            usort($eventos, fn($a, $b) => $a['inicio_min'] <=> $b['inicio_min']);
+            usort($eventos, fn ($a, $b) => $a['inicio_min'] <=> $b['inicio_min']);
             $porDia[$dia] = $eventos;
         }
 
@@ -104,11 +104,12 @@ class DisciplinaController extends Controller
     {
         $disciplina->load([
             'horarios',
-            'socios'    => fn($q) => $q->withPivot(['fecha_inscripcion', 'estado']),
+            'socios' => fn ($q) => $q->withPivot(['fecha_inscripcion', 'estado']),
             'profesores',
         ]);
 
-        $sociosDisponibles = Socio::whereNotIn('id', $disciplina->socios->pluck('id'))
+        $sociosDisponibles = Socio::where('estado', 'activo')
+            ->whereNotIn('id', $disciplina->socios->pluck('id'))
             ->orderBy('apellido')->orderBy('nombre')
             ->get();
 
@@ -153,24 +154,24 @@ class DisciplinaController extends Controller
     public function inscribir(Request $request, Disciplina $disciplina): RedirectResponse
     {
         $request->validate([
-            'socio_id'          => 'required|exists:socios,id',
+            'socio_id' => 'required|exists:socios,id',
             'fecha_inscripcion' => 'required|date',
         ]);
 
         $disciplina->socios()->syncWithoutDetaching([
             $request->socio_id => [
                 'fecha_inscripcion' => $request->fecha_inscripcion,
-                'estado'            => 'activa',
+                'estado' => 'activa',
             ],
         ]);
 
         $socio = Socio::find($request->socio_id);
 
         DisciplinaInscripcionLog::create([
-            'socio_id'       => $socio->id,
-            'disciplina_id'  => $disciplina->id,
-            'accion'         => 'inscripcion',
-            'origen'         => 'web',
+            'socio_id' => $socio->id,
+            'disciplina_id' => $disciplina->id,
+            'accion' => 'inscripcion',
+            'origen' => 'web',
             'registrado_por' => auth()->id(),
         ]);
 
@@ -182,10 +183,10 @@ class DisciplinaController extends Controller
         $disciplina->socios()->updateExistingPivot($socio->id, ['estado' => 'baja']);
 
         DisciplinaInscripcionLog::create([
-            'socio_id'       => $socio->id,
-            'disciplina_id'  => $disciplina->id,
-            'accion'         => 'baja',
-            'origen'         => 'web',
+            'socio_id' => $socio->id,
+            'disciplina_id' => $disciplina->id,
+            'accion' => 'baja',
+            'origen' => 'web',
             'registrado_por' => auth()->id(),
         ]);
 
@@ -197,10 +198,10 @@ class DisciplinaController extends Controller
         $disciplina->socios()->updateExistingPivot($socio->id, ['estado' => 'activa']);
 
         DisciplinaInscripcionLog::create([
-            'socio_id'       => $socio->id,
-            'disciplina_id'  => $disciplina->id,
-            'accion'         => 'reactivacion',
-            'origen'         => 'web',
+            'socio_id' => $socio->id,
+            'disciplina_id' => $disciplina->id,
+            'accion' => 'reactivacion',
+            'origen' => 'web',
             'registrado_por' => auth()->id(),
         ]);
 
@@ -209,8 +210,8 @@ class DisciplinaController extends Controller
 
     public function toggleBeca(Disciplina $disciplina, Socio $socio): RedirectResponse
     {
-        $pivot  = $disciplina->socios()->where('socio_id', $socio->id)->first()?->pivot;
-        $nuevaBeca = !($pivot?->beca ?? false);
+        $pivot = $disciplina->socios()->where('socio_id', $socio->id)->first()?->pivot;
+        $nuevaBeca = ! ($pivot?->beca ?? false);
 
         $disciplina->socios()->updateExistingPivot($socio->id, ['beca' => $nuevaBeca]);
 
@@ -227,7 +228,7 @@ class DisciplinaController extends Controller
     {
         $request->validate([
             'profesor_id' => 'required|exists:profesores,id',
-            'sueldo'      => 'required|numeric|min:0',
+            'sueldo' => 'required|numeric|min:0',
         ]);
 
         $disciplina->profesores()->syncWithoutDetaching([
@@ -251,11 +252,11 @@ class DisciplinaController extends Controller
     private function reglas(): array
     {
         return [
-            'nombre'      => 'required|string|max:100',
+            'nombre' => 'required|string|max:100',
             'descripcion' => 'nullable|string|max:500',
-            'costo'       => 'required|numeric|min:0',
-            'tipo_costo'  => 'required|in:mensual,por_clase,anual',
-            'estado'      => 'required|in:activa,inactiva',
+            'costo' => 'required|numeric|min:0',
+            'tipo_costo' => 'required|in:mensual,por_clase,anual',
+            'estado' => 'required|in:activa,inactiva',
         ];
     }
 
@@ -268,9 +269,9 @@ class DisciplinaController extends Controller
                 continue;
             }
             $disciplina->horarios()->create([
-                'dia_semana'  => $h['dia_semana'],
+                'dia_semana' => $h['dia_semana'],
                 'hora_inicio' => $h['hora_inicio'],
-                'hora_fin'    => $h['hora_fin'],
+                'hora_fin' => $h['hora_fin'],
             ]);
         }
     }

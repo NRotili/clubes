@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -44,8 +45,8 @@ class Socio extends Model
     {
         return [
             'fecha_nacimiento' => 'date',
-            'fecha_alta'       => 'date',
-            'paga_cuota_base'  => 'boolean',
+            'fecha_alta' => 'date',
+            'paga_cuota_base' => 'boolean',
         ];
     }
 
@@ -114,7 +115,7 @@ class Socio extends Model
 
     public function fotoUrl(): ?string
     {
-        return $this->foto ? asset('storage/' . $this->foto) : null;
+        return $this->foto ? asset('storage/'.$this->foto) : null;
     }
 
     public static function generarQrUuid(): string
@@ -135,34 +136,35 @@ class Socio extends Model
             ->selectRaw('MAX(CAST(numero_socio AS UNSIGNED)) as maximo')
             ->value('maximo');
         $siguiente = $ultimo ? ((int) $ultimo + 1) : 1;
+
         return str_pad($siguiente, 5, '0', STR_PAD_LEFT);
     }
 
-    public static function titulares(): \Illuminate\Database\Eloquent\Builder
+    public static function titulares(): Builder
     {
-        return static::whereNull('socio_titular_id')->orderBy('apellido')->orderBy('nombre');
+        return static::where('estado', 'activo')->whereNull('socio_titular_id')->orderBy('apellido')->orderBy('nombre');
     }
 
     public static function etiquetaCategoria(string $cat): string
     {
         return match ($cat) {
-            'adulto'   => 'Adulto',
-            'junior'   => 'Junior',
-            'cadete'   => 'Cadete',
-            'bebe'     => 'Bebé',
+            'adulto' => 'Adulto',
+            'junior' => 'Junior',
+            'cadete' => 'Cadete',
+            'bebe' => 'Bebé',
             'jubilado' => 'Jubilado',
-            default    => ucfirst($cat),
+            default => ucfirst($cat),
         };
     }
 
     public static function etiquetaEstado(string $estado): string
     {
         return match ($estado) {
-            'activo'     => 'Activo',
-            'inactivo'   => 'Inactivo',
+            'activo' => 'Activo',
+            'inactivo' => 'Inactivo',
             'suspendido' => 'Suspendido',
-            'pendiente'  => 'Pendiente',
-            default      => ucfirst($estado),
+            'pendiente' => 'Pendiente',
+            default => ucfirst($estado),
         };
     }
 
@@ -180,11 +182,11 @@ class Socio extends Model
     {
         return match ($parentesco) {
             'conyuge' => 'Cónyuge / Pareja',
-            'hijo'    => 'Hijo/a',
-            'padre'   => 'Padre / Madre',
+            'hijo' => 'Hijo/a',
+            'padre' => 'Padre / Madre',
             'hermano' => 'Hermano/a',
-            'otro'    => 'Otro',
-            default   => ucfirst($parentesco),
+            'otro' => 'Otro',
+            default => ucfirst($parentesco),
         };
     }
 }

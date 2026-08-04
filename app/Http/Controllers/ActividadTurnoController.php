@@ -49,7 +49,7 @@ class ActividadTurnoController extends Controller
         }
         unset($slot);
 
-        $sociosDisponibles = Socio::orderBy('apellido')->orderBy('nombre')->get();
+        $sociosDisponibles = Socio::where('estado', 'activo')->orderBy('apellido')->orderBy('nombre')->get();
 
         return view('actividades.agenda', compact('actividad', 'fecha', 'slots', 'sociosDisponibles'));
     }
@@ -57,9 +57,9 @@ class ActividadTurnoController extends Controller
     public function store(Request $request, Actividad $actividad): RedirectResponse
     {
         $request->validate([
-            'socio_id'      => 'required|exists:socios,id',
-            'fecha'         => 'required|date',
-            'hora_inicio'   => 'required',
+            'socio_id' => 'required|exists:socios,id',
+            'fecha' => 'required|date',
+            'hora_inicio' => 'required',
             'observaciones' => 'nullable|string|max:500',
         ]);
 
@@ -90,7 +90,7 @@ class ActividadTurnoController extends Controller
     public function aprobar(ActividadTurno $turno): RedirectResponse
     {
         $turno->update([
-            'estado'         => 'confirmado',
+            'estado' => 'confirmado',
             'gestionado_por' => auth()->id(),
         ]);
 
@@ -99,7 +99,7 @@ class ActividadTurnoController extends Controller
         PushNotificationService::enviarAlSocio(
             $turno->socio,
             'Turno confirmado',
-            "Tu turno de {$turno->actividad->nombre} para el {$turno->fecha->format('d/m/Y')} a las " . substr($turno->hora_inicio, 0, 5) . ' fue confirmado.',
+            "Tu turno de {$turno->actividad->nombre} para el {$turno->fecha->format('d/m/Y')} a las ".substr($turno->hora_inicio, 0, 5).' fue confirmado.',
             ['tipo' => 'turno', 'turno_id' => (string) $turno->id]
         );
 
@@ -109,7 +109,7 @@ class ActividadTurnoController extends Controller
     public function rechazar(ActividadTurno $turno): RedirectResponse
     {
         $turno->update([
-            'estado'         => 'rechazado',
+            'estado' => 'rechazado',
             'gestionado_por' => auth()->id(),
         ]);
 
@@ -118,7 +118,7 @@ class ActividadTurnoController extends Controller
         PushNotificationService::enviarAlSocio(
             $turno->socio,
             'Turno rechazado',
-            "Tu turno de {$turno->actividad->nombre} para el {$turno->fecha->format('d/m/Y')} a las " . substr($turno->hora_inicio, 0, 5) . ' fue rechazado.',
+            "Tu turno de {$turno->actividad->nombre} para el {$turno->fecha->format('d/m/Y')} a las ".substr($turno->hora_inicio, 0, 5).' fue rechazado.',
             ['tipo' => 'turno', 'turno_id' => (string) $turno->id]
         );
 
@@ -147,22 +147,22 @@ class ActividadTurnoController extends Controller
         }
 
         $turno->load('actividad');
-        $detalle = "Turno {$turno->actividad->nombre} {$turno->fecha->format('d/m/Y')} " . substr($turno->hora_inicio, 0, 5);
+        $detalle = "Turno {$turno->actividad->nombre} {$turno->fecha->format('d/m/Y')} ".substr($turno->hora_inicio, 0, 5);
 
         DB::transaction(function () use ($request, $turno, $detalle) {
             $pago = Pago::create([
-                'socio_id'         => $turno->socio_id,
+                'socio_id' => $turno->socio_id,
                 'cuota_mensual_id' => null,
-                'fecha'            => now()->toDateString(),
-                'metodo_pago'      => $request->metodo_pago,
-                'total'            => $turno->monto,
-                'observaciones'    => $detalle,
+                'fecha' => now()->toDateString(),
+                'metodo_pago' => $request->metodo_pago,
+                'total' => $turno->monto,
+                'observaciones' => $detalle,
             ]);
 
             PagoItem::create([
-                'pago_id'     => $pago->id,
+                'pago_id' => $pago->id,
                 'descripcion' => $detalle,
-                'monto'       => $turno->monto,
+                'monto' => $turno->monto,
             ]);
 
             $turno->update(['pago_id' => $pago->id, 'pagado' => true]);

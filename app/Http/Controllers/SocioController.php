@@ -6,9 +6,11 @@ use App\Models\CuotaConfig;
 use App\Models\DisciplinaInscripcionLog;
 use App\Models\Ingreso;
 use App\Models\Socio;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -70,11 +72,11 @@ class SocioController extends Controller
             try {
                 $socio = Socio::create($data);
                 break;
-            } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
-                if ($intento >= 4 || !str_contains($e->getMessage(), 'numero_socio')) {
+            } catch (UniqueConstraintViolationException $e) {
+                if ($intento >= 4 || ! str_contains($e->getMessage(), 'numero_socio')) {
                     throw $e;
                 }
-                \Illuminate\Support\Facades\Log::error("Colisión de numero_socio '{$data['numero_socio']}' al dar de alta un socio, reintentando (intento {$intento}).");
+                Log::error("Colisión de numero_socio '{$data['numero_socio']}' al dar de alta un socio, reintentando (intento {$intento}).");
             }
         }
 
@@ -91,7 +93,7 @@ class SocioController extends Controller
             abort(403, 'Solo podés ver tu propio perfil.');
         }
 
-        $socio->load(['titular', 'grupoFamiliar', 'disciplinas' => fn($q) => $q->withPivot(['fecha_inscripcion', 'estado'])]);
+        $socio->load(['titular', 'grupoFamiliar', 'disciplinas' => fn ($q) => $q->withPivot(['fecha_inscripcion', 'estado'])]);
 
         $cuotaBase = CuotaConfig::montoParaSocio($socio);
 
@@ -105,7 +107,15 @@ class SocioController extends Controller
 
     public function edit(Socio $socio): View
     {
-        $titulares = Socio::titulares()->where('id', '!=', $socio->id)->get();
+        $titulares = Socio::where(function ($q) use ($socio) {
+            $q->where('estado', 'activo')->whereNull('socio_titular_id');
+            if ($socio->socio_titular_id) {
+                $q->orWhere('id', $socio->socio_titular_id);
+            }
+        })
+            ->where('id', '!=', $socio->id)
+            ->orderBy('apellido')->orderBy('nombre')
+            ->get();
 
         return view('socios.edit', compact('socio', 'titulares'));
     }
@@ -206,7 +216,7 @@ class SocioController extends Controller
         } else {
             $esNuevo = true;
             $ingreso = Ingreso::create([
-                'socio_id'    => $socio->id,
+                'socio_id' => $socio->id,
                 'ingresado_en' => $ahora,
             ]);
         }
@@ -227,28 +237,28 @@ class SocioController extends Controller
     private function reglas(?int $ignorarId = null): array
     {
         return [
-            'nombre'           => 'required|string|max:100',
-            'apellido'         => 'required|string|max:100',
-            'tipo_documento'   => 'required|in:DNI,PASAPORTE,LC,LE,CI',
+            'nombre' => 'required|string|max:100',
+            'apellido' => 'required|string|max:100',
+            'tipo_documento' => 'required|in:DNI,PASAPORTE,LC,LE,CI',
             'numero_documento' => "required|string|max:20|unique:socios,numero_documento,{$ignorarId}",
             'fecha_nacimiento' => 'required|date|before:today',
-            'genero'           => 'required|in:M,F,X',
-            'email'            => 'nullable|email|max:150',
-            'telefono'         => 'nullable|string|max:20',
-            'celular'          => 'nullable|string|max:20',
-            'direccion'        => 'nullable|string|max:255',
-            'ciudad'           => 'nullable|string|max:100',
-            'provincia'        => 'nullable|string|max:100',
-            'codigo_postal'    => 'nullable|string|max:10',
-            'categoria'        => 'required|in:adulto,junior,cadete,bebe,jubilado',
-            'estado'           => 'required|in:activo,inactivo,suspendido,pendiente',
-            'fecha_alta'       => 'required|date',
+            'genero' => 'required|in:M,F,X',
+            'email' => 'nullable|email|max:150',
+            'telefono' => 'nullable|string|max:20',
+            'celular' => 'nullable|string|max:20',
+            'direccion' => 'nullable|string|max:255',
+            'ciudad' => 'nullable|string|max:100',
+            'provincia' => 'nullable|string|max:100',
+            'codigo_postal' => 'nullable|string|max:10',
+            'categoria' => 'required|in:adulto,junior,cadete,bebe,jubilado',
+            'estado' => 'required|in:activo,inactivo,suspendido,pendiente',
+            'fecha_alta' => 'required|date',
             'socio_titular_id' => 'nullable|exists:socios,id',
-            'parentesco'       => 'nullable|required_with:socio_titular_id|in:conyuge,hijo,padre,hermano,otro',
-            'observaciones'    => 'nullable|string|max:1000',
-            'foto'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:3072',
-            'eliminar_foto'    => 'nullable|boolean',
-            'paga_cuota_base'  => 'nullable|boolean',
+            'parentesco' => 'nullable|required_with:socio_titular_id|in:conyuge,hijo,padre,hermano,otro',
+            'observaciones' => 'nullable|string|max:1000',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:3072',
+            'eliminar_foto' => 'nullable|boolean',
+            'paga_cuota_base' => 'nullable|boolean',
         ];
     }
 }
