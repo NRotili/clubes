@@ -18,6 +18,6 @@ class Ingreso extends Model
 
     public function socio(): BelongsTo
     {
-        return $this->belongsTo(Socio::class);
+        return $this->belongsTo(Socio::class)->withTrashed();
     }
 }

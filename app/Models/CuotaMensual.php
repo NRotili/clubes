@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,15 +18,15 @@ class CuotaMensual extends Model
     protected function casts(): array
     {
         return [
-            'items'        => 'array',
-            'monto_total'  => 'decimal:2',
+            'items' => 'array',
+            'monto_total' => 'decimal:2',
             'monto_pagado' => 'decimal:2',
         ];
     }
 
     public function socio(): BelongsTo
     {
-        return $this->belongsTo(Socio::class);
+        return $this->belongsTo(Socio::class)->withTrashed();
     }
 
     public function pagos(): HasMany
@@ -38,11 +39,12 @@ class CuotaMensual extends Model
         return max(0, (float) $this->monto_total - (float) $this->monto_pagado);
     }
 
-    public function fechaVencimiento(): \Carbon\Carbon
+    public function fechaVencimiento(): Carbon
     {
         [$anio, $mes] = explode('-', $this->periodo);
-        $dia = min(ClubConfig::diaVencimiento(), \Carbon\Carbon::create($anio, $mes)->daysInMonth);
-        return \Carbon\Carbon::create($anio, $mes, $dia)->endOfDay();
+        $dia = min(ClubConfig::diaVencimiento(), Carbon::create($anio, $mes)->daysInMonth);
+
+        return Carbon::create($anio, $mes, $dia)->endOfDay();
     }
 
     public function estaVencida(): bool
@@ -52,7 +54,10 @@ class CuotaMensual extends Model
 
     public function recargo(): float
     {
-        if (!$this->estaVencida()) return 0;
+        if (! $this->estaVencida()) {
+            return 0;
+        }
+
         return round($this->saldo() * ClubConfig::recargoMora() / 100, 2);
     }
 
@@ -83,7 +88,7 @@ class CuotaMensual extends Model
     {
         ['items' => $items, 'total' => $total] = static::construirItems($this->socio, $this->periodo);
 
-        $this->items       = $items;
+        $this->items = $items;
         $this->monto_total = $total;
         $this->save();
 
@@ -99,16 +104,17 @@ class CuotaMensual extends Model
             '07' => 'Julio', '08' => 'Agosto', '09' => 'Septiembre',
             '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre',
         ];
-        return ($meses[$mes] ?? $mes) . ' ' . $anio;
+
+        return ($meses[$mes] ?? $mes).' '.$anio;
     }
 
     public static function etiquetaEstado(string $estado): string
     {
         return match ($estado) {
             'pendiente' => 'Pendiente',
-            'parcial'   => 'Pago parcial',
-            'pagado'    => 'Pagado',
-            default     => ucfirst($estado),
+            'parcial' => 'Pago parcial',
+            'pagado' => 'Pagado',
+            default => ucfirst($estado),
         };
     }
 
@@ -116,9 +122,9 @@ class CuotaMensual extends Model
     {
         return match ($estado) {
             'pendiente' => 'bg-red-50 text-red-700 border-red-200',
-            'parcial'   => 'bg-amber-50 text-amber-700 border-amber-200',
-            'pagado'    => 'bg-green-50 text-green-700 border-green-200',
-            default     => 'bg-slate-100 text-slate-600 border-slate-200',
+            'parcial' => 'bg-amber-50 text-amber-700 border-amber-200',
+            'pagado' => 'bg-green-50 text-green-700 border-green-200',
+            default => 'bg-slate-100 text-slate-600 border-slate-200',
         };
     }
 
@@ -126,10 +132,10 @@ class CuotaMensual extends Model
     public static function generarParaPeriodo(string $periodo): array
     {
         $socios = Socio::where('estado', 'activo')
-            ->with(['disciplinas' => fn($q) => $q->wherePivot('estado', 'activa')])
+            ->with(['disciplinas' => fn ($q) => $q->wherePivot('estado', 'activa')])
             ->get();
 
-        $creadas  = 0;
+        $creadas = 0;
         $omitidas = 0;
 
         foreach ($socios as $socio) {
@@ -139,6 +145,7 @@ class CuotaMensual extends Model
 
             if ($existe) {
                 $omitidas++;
+
                 continue;
             }
 
@@ -146,16 +153,17 @@ class CuotaMensual extends Model
 
             if (empty($items)) {
                 $omitidas++;
+
                 continue;
             }
 
             static::create([
-                'socio_id'    => $socio->id,
-                'periodo'     => $periodo,
-                'items'       => $items,
+                'socio_id' => $socio->id,
+                'periodo' => $periodo,
+                'items' => $items,
                 'monto_total' => $total,
-                'monto_pagado'=> 0,
-                'estado'      => 'pendiente',
+                'monto_pagado' => 0,
+                'estado' => 'pendiente',
             ]);
 
             $creadas++;
@@ -181,8 +189,8 @@ class CuotaMensual extends Model
             $cuotaBase = CuotaConfig::montoParaSocio($socio);
             if ($cuotaBase > 0) {
                 $items[] = [
-                    'descripcion' => 'Cuota base — ' . Socio::etiquetaCategoria($socio->categoria) . ' / ' . Socio::etiquetaGenero($socio->genero),
-                    'monto'       => $cuotaBase,
+                    'descripcion' => 'Cuota base — '.Socio::etiquetaCategoria($socio->categoria).' / '.Socio::etiquetaGenero($socio->genero),
+                    'monto' => $cuotaBase,
                 ];
                 $total += $cuotaBase;
             }
@@ -196,35 +204,36 @@ class CuotaMensual extends Model
         foreach ($disciplinas as $d) {
             if ($d->pivot->beca) {
                 $items[] = [
-                    'descripcion' => $d->nombre . ' (beca)',
-                    'monto'       => 0,
-                    'beca'        => true,
+                    'descripcion' => $d->nombre.' (beca)',
+                    'monto' => 0,
+                    'beca' => true,
                 ];
+
                 continue;
             }
 
             if ($d->tipo_costo === 'por_clase') {
-                $clases     = DisciplinaHorario::clasesEnPeriodo($d->id, $periodo);
+                $clases = DisciplinaHorario::clasesEnPeriodo($d->id, $periodo);
                 $costoClase = (float) $d->costo;
-                $monto      = round($costoClase * $clases, 2);
+                $monto = round($costoClase * $clases, 2);
                 $items[] = [
-                    'descripcion'        => $d->nombre . ' · ' . $clases . ' ' . ($clases === 1 ? 'clase' : 'clases') . ' × $' . number_format($costoClase, 2, ',', '.'),
-                    'monto'              => $monto,
-                    'tipo'               => 'por_clase',
-                    'costo_clase'        => $costoClase,
-                    'clases'             => $clases,
+                    'descripcion' => $d->nombre.' · '.$clases.' '.($clases === 1 ? 'clase' : 'clases').' × $'.number_format($costoClase, 2, ',', '.'),
+                    'monto' => $monto,
+                    'tipo' => 'por_clase',
+                    'costo_clase' => $costoClase,
+                    'clases' => $clases,
                     'clases_programadas' => $clases,
-                    'disciplina_id'      => $d->id,
+                    'disciplina_id' => $d->id,
                 ];
             } else {
                 $monto = match ($d->tipo_costo) {
                     'mensual' => (float) $d->costo,
-                    'anual'   => round((float) $d->costo / 12, 2),
-                    default   => (float) $d->costo,
+                    'anual' => round((float) $d->costo / 12, 2),
+                    default => (float) $d->costo,
                 };
                 $items[] = [
-                    'descripcion' => $d->nombre . ($d->tipo_costo === 'anual' ? ' (anual ÷12)' : ''),
-                    'monto'       => $monto,
+                    'descripcion' => $d->nombre.($d->tipo_costo === 'anual' ? ' (anual ÷12)' : ''),
+                    'monto' => $monto,
                 ];
             }
             $total += $monto;

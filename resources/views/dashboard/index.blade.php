@@ -127,11 +127,11 @@
             @forelse($ultimosIngresos as $ingreso)
                 <div class="flex items-center gap-3 px-5 py-3 border-b border-slate-50 last:border-0">
                     <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">
-                        {{ strtoupper(substr($ingreso->socio->nombre, 0, 1) . substr($ingreso->socio->apellido, 0, 1)) }}
+                        {{ $ingreso->socio ? strtoupper(substr($ingreso->socio->nombre, 0, 1) . substr($ingreso->socio->apellido, 0, 1)) : '?' }}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-slate-800 truncate">{{ $ingreso->socio->nombreCompleto() }}</p>
-                        <p class="text-xs text-slate-400">N° {{ $ingreso->socio->numero_socio }}</p>
+                        <p class="text-sm font-medium text-slate-800 truncate">{{ $ingreso->socio?->nombreCompleto() ?? 'Socio eliminado' }}</p>
+                        <p class="text-xs text-slate-400">{{ $ingreso->socio ? 'N° '.$ingreso->socio->numero_socio : '' }}</p>
                     </div>
                     <div class="text-right shrink-0">
                         <p class="text-xs font-semibold text-slate-700">{{ $ingreso->ingresado_en->format('H:i') }}</p>
@@ -152,12 +152,16 @@
             @forelse($topDeudores as $item)
                 <div class="flex items-center gap-3 px-5 py-3 border-b border-slate-50 last:border-0">
                     <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-xs font-bold text-red-400 shrink-0">
-                        {{ strtoupper(substr($item['socio']->nombre, 0, 1) . substr($item['socio']->apellido, 0, 1)) }}
+                        {{ $item['socio'] ? strtoupper(substr($item['socio']->nombre, 0, 1) . substr($item['socio']->apellido, 0, 1)) : '?' }}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <a href="{{ route('socios.show', $item['socio']) }}" class="text-sm font-medium text-slate-800 hover:text-blue-600 truncate block">
-                            {{ $item['socio']->nombreCompleto() }}
-                        </a>
+                        @if($item['socio'])
+                            <a href="{{ route('socios.show', $item['socio']) }}" class="text-sm font-medium text-slate-800 hover:text-blue-600 truncate block">
+                                {{ $item['socio']->nombreCompleto() }}
+                            </a>
+                        @else
+                            <span class="text-sm font-medium text-slate-800 truncate block">Socio eliminado</span>
+                        @endif
                         <p class="text-xs text-slate-400">{{ $item['cant'] }} {{ $item['cant'] === 1 ? 'cuota' : 'cuotas' }} impagas</p>
                     </div>
                     <span class="text-sm font-bold text-red-600 shrink-0">${{ number_format($item['deuda'], 0, ',', '.') }}</span>
