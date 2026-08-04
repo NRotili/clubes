@@ -11,14 +11,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Testing**: PHPUnit 12.5
 - **Package Managers**: Composer (PHP), npm (Node.js)
 
+## Domain Overview
+
+This is a management system for an Argentine sports/social club ("club de barrio"). Core entities:
+
+- **Socios** (`Socio`): club members. Have a `numero_socio`, QR-verifiable status, monthly dues (`CuotaMensual`), payments (`Pago`/`PagoItem`), and can be suspended for debt.
+- **Disciplinas** (`Disciplina`): sport/activity classes with schedules (`DisciplinaHorario`), inscription tracking (`DisciplinaInscripcionLog`), and per-discipline attendance (`AsistenciaDisciplina`).
+- **Actividades / Turnos** (`Actividad`, `ActividadFranja`, `ActividadTurno`): bookable facilities (courts, rooms) with availability slots and a reservation/approval workflow (`ActividadDisponibilidadService`, `ActividadReservaService`).
+- **Profesores** (`Profesor`): teachers linked to disciplinas; a `profesor`-role user can view "Mis clases" and take attendance.
+- **Finanzas**: `Ingreso`/`Egreso` (general income/expense) plus cuotas/pagos for membership dues, with debtor tracking (`DeudoresController`).
+- **Comunicación**: `Comunicacion` (targeted messages) and `Noticia` (news board), both pushed via `PushNotificationService`.
+- **ClubConfig**: key/value store for club branding (name, logo, contact) and cuota settings, shared to all views via `AppServiceProvider` as `$club`.
+
+**Roles** (`users.rol` enum): `desarrollador` (super-admin/dev-only features), `administracion`, `profesor`, `socio`. Route access is guarded by a custom `rol:` middleware (`App\Http\Middleware\CheckRol`), e.g. `Route::middleware('rol:administracion,desarrollador')`. Helper methods on `User` (`esDesarrollador()`, `esAdministracion()`, `esProfesor()`, `esSocio()`, `puedeGestionarSocios()`) are used both in middleware and Blade `@if` checks (sidebar menu, feature gating). `desarrollador`-only areas include user management (`usuarios.*`) and the Artisan command console (`artisan.*`).
+
+**Mobile app**: a companion Expo/React Native app (separate repo) consumes `routes/api.php` via Sanctum token auth (`/api/login`, `/api/register`, then bearer-token endpoints for `me`, `cuotas`, `noticias`, `disciplinas`, `calendario`, `actividades`/`turnos`, push token registration, etc). When changing API responses, keep the mobile client's expectations in mind.
+
+**Admin Artisan console** (`ArtisanController`, desarrollador-only, `/artisan`): runs a fixed whitelist of safe commands from the web UI (cache/config/route/view clears, `migrate --force`, `queue:restart`, and the custom `socios:notificar-vencimientos` / `socios:suspender-deudores` commands). It does **not** accept arbitrary command strings — new commands must be added to the whitelist in the controller.
+
+**Scheduled commands** (`app/Console/Commands/`, wired in `routes/console.php`):
+- `NotificarVencimientosCommand` (`socios:notificar-vencimientos`) — push notifications for cuotas due soon/today/overdue.
+- `SuspenderDeudoresCommand` (`socios:suspender-deudores {--dry-run}`) — suspends members with unpaid debt.
+
 ## Project Structure
 
 ```
 clubes/
 ├── app/                    # Application code
-│   ├── Http/Controllers/   # Route controllers
+│   ├── Http/Controllers/   # Web route controllers
+│   │   └── Api/            # JSON API controllers (mobile app)
+│   ├── Http/Middleware/    # CheckRol and other middleware
 │   ├── Models/             # Eloquent models
-│   └── Providers/          # Service providers
+│   ├── Services/           # Domain services (disponibilidad/reserva de turnos, push notifications)
+│   ├── Console/Commands/   # Scheduled artisan commands
+│   └── Providers/          # Service providers (shares $club config to all views)
 ├── bootstrap/              # Bootstrap the application
 │   └── app.php            # Application configuration/bootstrapping
 ├── config/                 # Configuration files
@@ -30,10 +56,11 @@ clubes/
 ├── resources/
 │   ├── css/                # Tailwind CSS entry point (app.css)
 │   ├── js/                 # JavaScript entry point (app.js)
-│   └── views/              # Blade templates (.blade.php)
+│   └── views/              # Blade templates (.blade.php), organized by feature (socios, actividades, artisan, manual, configuracion, etc.)
 ├── routes/
-│   ├── web.php            # Web routes
-│   └── console.php         # Console/artisan commands
+│   ├── web.php            # Web routes (session auth, role-gated groups)
+│   ├── api.php             # JSON API routes for the mobile app (Sanctum)
+│   └── console.php         # Console/artisan commands + schedule
 ├── storage/                # Application storage (logs, cache, compiled views)
 ├── tests/                  # Test files (Unit and Feature)
 ├── vendor/                 # Composer dependencies
@@ -47,7 +74,7 @@ clubes/
 
 ## Architecture Overview
 
-This is a modern Laravel application following the default Laravel 13 structure with server-side rendering via Blade templates and client-side assets (CSS/JS) compiled via Vite.
+This is a Laravel 13 application with server-side rendering via Blade templates for the web admin/socio panel, plus a JSON API (Sanctum) consumed by a separate mobile app.
 
 **Key architectural decisions:**
 - **Database-first approach**: Uses SQLite by default with migrations managed through Laravel's migration system
@@ -56,6 +83,7 @@ This is a modern Laravel application following the default Laravel 13 structure 
 - **Queue system**: Uses database queue driver (`QUEUE_CONNECTION=database`)
 - **MVC Pattern**: Routes → Controllers → Models → Views
 - **Blade Templating**: Server-side templating in `resources/views/` with Tailwind CSS v4 for styling
+- **Sidebar menu**: `resources/views/layouts/app.blade.php` has separate desktop (`<aside>`) and mobile (collapsible) navs — both must be updated when adding a menu item, gated with the same `esDesarrollador()`/`puedeGestionarSocios()` checks used in routes
 
 ## Development Commands
 
@@ -140,12 +168,7 @@ php artisan migrate:rollback  # Rollback last batch
 php artisan migrate:fresh     # Drop all tables and re-run migrations
 ```
 
-**Current schema**: 
-- `users` table with email, password, timestamps
-- `password_reset_tokens` table
-- `sessions` table (database session storage)
-- `cache` / `cache_locks` tables (database cache storage)
-- `jobs` / `job_batches` / `failed_jobs` tables (database queue)
+**Current schema**: beyond Laravel's defaults (`users`, `password_reset_tokens`, `sessions`, `cache`/`cache_locks`, `jobs`/`job_batches`/`failed_jobs`), the schema covers the domain entities described in **Domain Overview** above (socios, cuotas/pagos, disciplinas, actividades/turnos, profesores, comunicaciones/noticias, club config). Check `database/migrations/` for the authoritative, up-to-date table list — don't rely on this file for schema details.
 
 ## Frontend Assets
 
@@ -199,9 +222,11 @@ php artisan pail               # Stream logs in real-time
 
 2. **Database in-memory for tests**: `phpunit.xml` uses `:memory:` SQLite for fast test isolation. Migrations run automatically before tests.
 
-3. **Service Provider**: `app/Providers/AppServiceProvider.php` is minimal (empty). Add service registrations here if needed.
+3. **Service Provider**: `app/Providers/AppServiceProvider.php` shares `ClubConfig::todos()` to all views as `$club` and registers API rate limiters. Its try/catch fallback (used when the config table isn't ready) must keep the same array shape as `ClubConfig::todos()` (all keys present, including `logo_url`), or `layouts/app.blade.php` throws on `$club['logo_url']`.
 
 4. **Configuration**: All config values can be overridden via `.env` file. Check `config/` directory for available options.
 
 5. **Blade vs JavaScript**: This is a server-rendered app (Blade templates with server-side logic). JavaScript is used for progressive enhancement, not as a SPA framework.
+
+6. **Running the full test suite**: `layouts/app.blade.php` declares a plain PHP function (`mobileSection`) inline via `@php`. Running many feature tests that render the layout in the same PHPUnit process can crash with "Cannot redeclare mobileSection()". If `php artisan test` (full suite) crashes with that error, run affected test files individually instead — it's a pre-existing quirk, not a sign your change broke something.
 
