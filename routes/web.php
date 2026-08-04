@@ -169,6 +169,9 @@ Route::middleware('auth')->group(function () {
         Route::get('finanzas', [FinanzasController::class, 'index'])->name('finanzas.index');
         Route::post('finanzas/egresos', [FinanzasController::class, 'storeEgreso'])->name('finanzas.egresos.store');
         Route::delete('finanzas/egresos/{egreso}', [FinanzasController::class, 'destroyEgreso'])->name('finanzas.egresos.destroy');
+        Route::post('finanzas/apertura', [FinanzasController::class, 'storeApertura'])->name('finanzas.apertura.store');
+        Route::post('finanzas/sueldos/{profesor}/pagar', [FinanzasController::class, 'pagarSueldo'])->name('finanzas.sueldos.pagar');
+        Route::get('finanzas/exportar', [FinanzasController::class, 'exportarPdf'])->name('finanzas.exportar');
     });
 
     // ── Configuración de cuotas (administración + desarrollador) ─────────────

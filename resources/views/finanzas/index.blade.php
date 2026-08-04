@@ -20,17 +20,77 @@
         <h1 class="text-2xl font-bold text-slate-900">Finanzas</h1>
         <p class="text-sm text-slate-500 mt-0.5">{{ $nombreMes }}</p>
     </div>
-    <form method="GET" action="{{ route('finanzas.index') }}" class="flex items-center gap-2">
-        <select name="periodo" onchange="this.form.submit()"
-            class="text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
-            @foreach($periodosDisponibles as $p)
-                @php [$pa, $pm] = explode('-', $p); @endphp
-                <option value="{{ $p }}" {{ $p === $periodo ? 'selected' : '' }}>
-                    {{ ($meses[$pm] ?? $pm) . ' ' . $pa }}
-                </option>
-            @endforeach
-        </select>
-    </form>
+    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+        <form method="GET" action="{{ route('finanzas.index') }}" class="flex items-center gap-2">
+            <select name="periodo" onchange="this.form.submit()"
+                class="text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+                @foreach($periodosDisponibles as $p)
+                    @php [$pa, $pm] = explode('-', $p); @endphp
+                    <option value="{{ $p }}" {{ $p === $periodo ? 'selected' : '' }}>
+                        {{ ($meses[$pm] ?? $pm) . ' ' . $pa }}
+                    </option>
+                @endforeach
+            </select>
+        </form>
+        <form method="GET" action="{{ route('finanzas.exportar') }}" class="flex items-center gap-2">
+            <input type="date" name="desde" value="{{ $anio . '-' . $mes . '-01' }}" required
+                class="text-sm border border-slate-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+            <span class="text-slate-400 text-sm">a</span>
+            <input type="date" name="hasta" value="{{ now()->format('Y-m-d') }}" required
+                class="text-sm border border-slate-300 rounded-lg px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700">
+            <button type="submit"
+                class="text-sm font-medium text-white bg-slate-700 hover:bg-slate-800 rounded-lg px-3 py-2 transition-colors shadow-sm">
+                Exportar PDF
+            </button>
+        </form>
+    </div>
+</div>
+
+{{-- Saldo de caja acumulado --}}
+<div class="bg-slate-900 rounded-xl shadow-sm p-5 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Saldo de caja</p>
+        <p class="text-3xl font-bold {{ $saldoActual >= 0 ? 'text-white' : 'text-red-400' }}">
+            {{ $saldoActual >= 0 ? '' : '−' }}${{ number_format(abs($saldoActual), 2, ',', '.') }}
+        </p>
+        <p class="text-xs text-slate-400 mt-1">
+            @if($apertura)
+                Acumulado desde el {{ $apertura->fecha->format('d/m/Y') }} (saldo inicial ${{ number_format($apertura->monto, 2, ',', '.') }})
+            @else
+                Sin saldo inicial configurado — se acumula desde el primer movimiento registrado.
+            @endif
+        </p>
+    </div>
+    <details class="shrink-0">
+        <summary class="cursor-pointer text-sm text-slate-200 hover:text-white font-medium select-none list-none px-3 py-2 border border-slate-600 rounded-lg text-center">
+            {{ $apertura ? 'Corregir saldo inicial' : 'Cargar saldo inicial' }}
+        </summary>
+        <form method="POST" action="{{ route('finanzas.apertura.store') }}" class="mt-3 space-y-2 bg-slate-800 rounded-lg p-4 w-full sm:w-80">
+            @csrf
+            <input type="hidden" name="periodo" value="{{ $periodo }}">
+            <div>
+                <label class="block text-xs text-slate-300 mb-1">Monto</label>
+                <input type="number" name="monto" min="0" step="0.01" required
+                    value="{{ old('monto', $apertura->monto ?? '') }}"
+                    class="w-full px-3 py-2 text-sm rounded-lg border-0 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-300 mb-1">Fecha</label>
+                <input type="date" name="fecha" required
+                    value="{{ old('fecha', optional($apertura?->fecha)->format('Y-m-d')) }}"
+                    class="w-full px-3 py-2 text-sm rounded-lg border-0 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-300 mb-1">Descripción (opcional)</label>
+                <input type="text" name="descripcion" maxlength="255"
+                    value="{{ old('descripcion', $apertura->descripcion ?? '') }}"
+                    class="w-full px-3 py-2 text-sm rounded-lg border-0 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit" class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                Guardar
+            </button>
+        </form>
+    </details>
 </div>
 
 {{-- Tarjetas resumen --}}
@@ -43,7 +103,7 @@
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
         <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Egresos</p>
         <p class="text-3xl font-bold text-red-600">${{ number_format($totalEgresos, 2, ',', '.') }}</p>
-        <p class="text-xs text-slate-400 mt-1">Sueldos + gastos del período</p>
+        <p class="text-xs text-slate-400 mt-1">Gastos del período (incluye sueldos pagados)</p>
     </div>
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
         <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Balance</p>
@@ -136,26 +196,57 @@
             @else
                 <ul class="divide-y divide-slate-100">
                     @foreach($profesoresConSueldo as $profesor)
-                        @php $sueldoTotal = $profesor->disciplinas->sum('pivot.sueldo'); @endphp
+                        @php
+                            $sueldoTotal = $profesor->disciplinas->sum('pivot.sueldo');
+                            $pago = $sueldosPagados->get($profesor->id);
+                        @endphp
                         <li class="px-5 py-3">
-                            <div class="flex items-center justify-between">
-                                <a href="{{ route('profesores.show', $profesor) }}" class="text-sm font-medium text-slate-900 hover:text-blue-600 transition-colors">
-                                    {{ $profesor->nombreCompleto() }}
-                                </a>
-                                <span class="text-sm font-semibold text-red-600">${{ number_format($sueldoTotal, 2, ',', '.') }}</span>
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <a href="{{ route('profesores.show', $profesor) }}" class="text-sm font-medium text-slate-900 hover:text-blue-600 transition-colors">
+                                        {{ $profesor->nombreCompleto() }}
+                                    </a>
+                                    @if($profesor->disciplinas->count() > 1)
+                                        <p class="text-xs text-slate-400 mt-0.5">
+                                            {{ $profesor->disciplinas->map(fn($d) => $d->nombre . ' $' . number_format($d->pivot->sueldo, 0, ',', '.'))->join(' · ') }}
+                                        </p>
+                                    @else
+                                        <p class="text-xs text-slate-400 mt-0.5">{{ $profesor->disciplinas->first()?->nombre ?? '' }}</p>
+                                    @endif
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span class="text-sm font-semibold text-red-600 block">${{ number_format($sueldoTotal, 2, ',', '.') }}</span>
+                                    @if($pago)
+                                        <div class="flex items-center gap-1.5 justify-end mt-1">
+                                            <span class="text-xs bg-green-100 text-green-700 font-medium px-1.5 py-0.5 rounded-full">Pagado {{ $pago->fecha->format('d/m') }}</span>
+                                            <form method="POST" action="{{ route('finanzas.egresos.destroy', $pago) }}">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="text-slate-300 hover:text-red-500 transition-colors"
+                                                    onclick="return confirm('¿Deshacer el pago de este sueldo?')" title="Deshacer pago">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @elseif($sueldoTotal > 0)
+                                        <form method="POST" action="{{ route('finanzas.sueldos.pagar', $profesor) }}" class="mt-1">
+                                            @csrf
+                                            <input type="hidden" name="periodo" value="{{ $periodo }}">
+                                            <button type="submit"
+                                                class="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                                                onclick="return confirm('¿Registrar el pago del sueldo de {{ $profesor->nombreCompleto() }} por ${{ number_format($sueldoTotal, 2, ',', '.') }}?')">
+                                                Pagar sueldo
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
-                            @if($profesor->disciplinas->count() > 1)
-                                <p class="text-xs text-slate-400 mt-0.5">
-                                    {{ $profesor->disciplinas->map(fn($d) => $d->nombre . ' $' . number_format($d->pivot->sueldo, 0, ',', '.'))->join(' · ') }}
-                                </p>
-                            @else
-                                <p class="text-xs text-slate-400 mt-0.5">{{ $profesor->disciplinas->first()?->nombre ?? '' }}</p>
-                            @endif
                         </li>
                     @endforeach
                 </ul>
                 <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex justify-between text-sm font-semibold">
-                    <span class="text-slate-600">Total sueldos</span>
+                    <span class="text-slate-600">Total sueldos configurados</span>
                     <span class="text-red-600">${{ number_format($totalSueldos, 2, ',', '.') }}</span>
                 </div>
             @endif
