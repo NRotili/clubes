@@ -223,7 +223,7 @@ class SocioImportService
             }
 
             $numeroDocumento = preg_replace('/[.\s]+/', '', $valores['numero_documento'] ?? '');
-            $numeroSocio = trim($valores['numero_socio'] ?? '');
+            $numeroSocio = $this->normalizarNumeroSocio(trim($valores['numero_socio'] ?? ''));
 
             $faltantes = [];
             if ($numeroSocio !== '' && mb_strlen($numeroSocio) > 10) {
@@ -427,6 +427,13 @@ class SocioImportService
             str_contains($normalizado, 'jubilad') => 'jubilado',
             default => null,
         };
+    }
+
+    /** Aplica el mismo padding a 5 dígitos que Socio::generarNumeroSocio(), para que los números
+     *  importados no queden inconsistentes con los generados automáticamente (ej. "23" -> "00023"). */
+    private function normalizarNumeroSocio(string $valor): string
+    {
+        return $valor !== '' && ctype_digit($valor) ? str_pad($valor, 5, '0', STR_PAD_LEFT) : $valor;
     }
 
     private function normalizarTipoDocumento(string $valor): string
